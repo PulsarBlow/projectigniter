@@ -3,89 +3,52 @@
 
     angular.module("app.controllers", ["firebase.utils"])
 
-        .controller("AppController", ["$log", "$scope", "$rootScope", "$state", "user2", "userProfile",
-            function ($log, $scope, $rootScope, $state, user2, userProfile) {
+        .controller("SigninController", ["$log", "$scope", "$state", "simpleLogin",
+            function ($log, $scope, $state, simpleLogin) {
 
-            $log.debug("AppController instantiated", {$state: $state});
-            $scope.user = {};
-            $scope.userProfile = {};
+                $log.debug("SigninController instantiated");
 
-            $rootScope.$on("nav:stateChanged", function(event, args) {
-                $log.debug("nav:stateChanged", {args: args, user: user});
-                //user.config.isNavOpened = args.navState && args.navState === "expanded" ? true : false;
-                //user.$save();
-            });
+                $scope.signin = function (provider) {
+                    simpleLogin.login(provider)
+                        .then(function (user) {
+                            $log.debug("User signed in", user);
+                            $state.go("app.home");
+                        }, function (err) {
+                            $log.error("Unable to login", err);
+                        });
+                };
+            }])
 
-            $rootScope.$on("$firebaseSimpleLogin:login", function(event, args){
-                $log.debug("$firebaseSimpleLogin:login", {event: event, args: args});
+        // currentUser is resolved by the state resolver (route.js)
+        .controller("AppController", ["$log", "$scope", "$rootScope", "simpleLogin", "userLoginInfo", "userData",
+            function ($log, $scope, $rootScope, simpleLogin, userLoginInfo, userData) {
 
-                var userId = args.uid,
-                    syncUser = user2(userId),
-                    syncUserProfile = userProfile(userId);
+            $log.debug("AppController instantiated", {userLoginInfo: userLoginInfo});
 
-                syncUser.tryCreateUser(userId, syncUser.parseUser(args))
-                    .then(function() {
-                       syncUserProfile.tryCreateUserProfile(userId, syncUserProfile.parseUserProfile(args)).then(function() {
+            userData.tryCreateUser(userLoginInfo);
+            userData.tryCreateUserProfile(userLoginInfo);
 
-                       }, function(err) {
-                           $log.error("Unable to try to create userProfile", err);
-                       });
-                    }, function(err) {
-                        $log.error("Unable to try to create user", err);
-                    });
+            var syncUser = userData.syncUser(userLoginInfo.uid);
+            syncUser.$bindTo($scope, "user");
 
-//                syncUser.$bindTo($scope, "user").then(function() {
-//                    $log.debug("user bound to scope");
-//                });
-//                syncUserProfile.$bindTo($scope, "userProfile").then(function() {
-//                   $log.debug("userProfile bound to scope");
-//                });
+            var syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
+            syncUserProfile.$bindTo($scope, "userProfile");
 
-            });
             $scope.main = {
                 brand: "Project Igniter",
                 err: null
             };
-//            simpleLogin.watch(function(user){
-//                $log.debug("user status changed", {user: user});
-//            }, $scope);
 
-        }])
-
-        .controller("HeaderController", ["$log", "$scope", "user", "simpleLogin",
-            function ($log, $scope, user, simpleLogin) {
-
-            $log.debug("HeaderController instantiated");
             $scope.signout = function() {
                 $scope.main.err = null;
                 simpleLogin.logout();
             };
+
         }])
 
-
-        .controller("NavController", ["$log", "$scope", "user", function ($log, $scope, user) {
-            $log.debug("NavController instantiated");
-        }])
 
         .controller("HomeController", ["$log", "$scope", function ($log, $scope) {
             $log.debug("HomeController instantiated");
-        }])
-
-        .controller("SigninController", ["$log", "$scope", "$state", "simpleLogin",
-            function ($log, $scope, $state, simpleLogin) {
-
-            $log.debug("SigninController instantiated");
-
-            $scope.signin = function (provider) {
-                $scope.main.err = null;
-                simpleLogin.login(provider)
-                    .then(function (user) {
-                        $log.debug("User signed in", user);
-                        $state.go("home");
-                    }, function (err) {
-                        $scope.main.err = errMessage(err);
-                    });
-            };
         }])
 
         .controller("VoteController", ["$log", "$scope", "$state", "names", "user", "userFavorites",
@@ -94,7 +57,7 @@
             $log.debug("VoteController instantiated", {scope: $scope, names: names, user: user, userFavorites: userFavorites});
 
             // if has vote go to vote edit, otherwise go to vote.create
-            $state.go("vote.create.step0");
+            $state.go("app.vote.create.step0");
             $scope.favorites = userFavorites;
             $scope.getPoints = function (index) {
                 return Math.pow(2, userFavorites.maxItems - index);

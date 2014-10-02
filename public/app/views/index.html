@@ -1,10 +1,59 @@
-<div class="page">
+<section id="header" class="header-container header-fixed bg-primary">
+    <header class="top-header clearfix">
 
-    <section class="panel panel-default" data-ng-controller="HomeController">
-        <div class="panel-heading"><strong>Bienvenue</strong></div>
-        <div class="panel-body">
-            <p>Content</p>
+        <div class="logo bg-primary">
+            <a ui-sref="app.home">
+                <span>{{main.brand}}</span>
+            </a>
         </div>
-    </section>
 
+        <div class="menu-button" toggle-off-canvas>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </div>
+
+        <div class="top-nav">
+            <ul class="nav-left list-unstyled">
+                <li>
+                    <a href="" data-nav-toggler class="toggle-min"><i class="fa fa-reorder"></i></a>
+                </li>
+            </ul>
+
+            <ul class="nav-right pull-right list-unstyled">
+                <li class="text-normal nav-profile">
+                    <a ui-sref="account">
+                        <img src="{{userProfile.picture_url}}" alt="" class="img-circle img30_30">
+                    <span class="hidden-xs">
+                        <span>{{user.displayName}}</span>
+                    </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="" title="Se déconnecter" data-ng-click="signout()">
+                        <i class="fa fa-sign-out"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    </header>
+</section>
+
+<div class="main-container">
+    <aside id="nav-container" class="nav-container nav-fixed nav-vertical bg-dark">
+        <div class="nav-wrapper">
+            <ul id="nav"
+                class="nav">
+                <li ui-sref-active="active"><a ui-sref="app.home" title="Home"><i class="fa fa-home"></i> <span>Home</span></a></li>
+                <li ui-sref-active="active"><a ui-sref="app.concept" title="Concept"><i class="fa fa-lightbulb-o"></i> <span>Concept</span></a></li>
+                <li ui-sref-active="active"><a ui-sref="app.vote" title="Vote"><i class="fa fa-heart"></i> <span>Vote</span></a></li>
+                <li ui-sref-active="active"><a ui-sref="app.results" title="Résultats"><i class="fa fa-line-chart"></i><span>Résultats</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <div id="content" class="content-container">
+        <section class="view-container animate-fade-up" data-ui-view></section>
+    </div>
 </div>

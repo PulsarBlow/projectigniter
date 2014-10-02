@@ -1,0 +1,61 @@
+doctype html
+html(lang="fr")
+    head
+        title Project Igniter
+        meta(charset="utf-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge, chrome=1")
+        meta(
+        name="viewport",
+        content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes")
+        link(href="/humans.txt", rel="author")
+        link(href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,400,600,300,700", rel="stylesheet")
+        link(href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css", rel="stylesheet")
+        link(href="/styles/bootstrap.min.css", rel="stylesheet")
+        link(href="/styles/ui.min.css", rel="stylesheet")
+        link(href="/styles/main.min.css", rel="stylesheet")
+        base(href="/")
+    body(
+        id="app",
+        class="app nav-collapsed-min"
+        data-ng-app="app",
+        data-ng-controller="AppController",
+        data-ng-cloak,
+        data-reactive-layout,
+        data-off-canvas-nav)
+        section(
+            id="header",
+            class="header-container header-fixed bg-primary"
+            data-ng-include=" 'app/views/shared/header.html' ",
+            data-ng-controller="HeaderController")
+        div.main-container
+            aside(
+                id="nav-container",
+                class="nav-container nav-fixed nav-vertical bg-dark",
+                data-ng-include=" 'app/views/shared/nav.html' ")
+            div(id="content").content-container
+                section(class="view-container animate-fade-up", data-ui-view)
+        script(src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js")
+        script(src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js")
+        script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
+        script(src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-rc.2/angular.min.js")
+        script(src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-rc.2/angular-route.min.js")
+        script(src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-rc.2/angular-animate.min.js")
+        script(src="//cdn.firebase.com/js/client/1.0.23/firebase.js")
+        script(src="//cdn.firebase.com/js/simple-login/1.6.4/firebase-simple-login.js")
+        script(src="//cdn.firebase.com/libs/angularfire/0.8.2/angularfire.min.js")
+        script(src="//cdn.rawgit.com/angular-ui/ui-router/0.2.11/release/angular-ui-router.min.js")
+        script(src="//cdn.rawgit.com/angular-ui/ui-sortable/v0.12.11/sortable.min.js")
+        script(src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js")
+        script(src="//cdn.rawgit.com/jprichardson/string.js/2.1.0/lib/string.min.js")
+
+        script(src="/app/app.js")
+        script(src="/app/modules/config.js")
+        script(src="/app/modules/routes.js")
+        script(src="/app/modules/controllers.js")
+        script(src="/app/modules/services.js")
+        script(src="/app/modules/directives.js")
+        script(src="/app/modules/filters.js")
+        //script(src="/app/modules/decorators.js")
+        script(src="/app/modules/firebase.utils.js")
+        script(src="/app/modules/simplelogin.js")
+        script(src="/app/modules/routesecurity.js")

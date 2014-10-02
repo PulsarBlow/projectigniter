@@ -26,6 +26,7 @@
             // Set up a handler for all future route changes, so we can check
             // if authentication is required.
             self._rootScope.$on("$stateChangeStart", function (e, next) {
+                console.log("routesecurity:$stateChangeStart");
                 self._authRequiredRedirect(next, self._loginPath);
             });
 
@@ -36,6 +37,7 @@
 
         _checkCurrent: function () {
             // Check if the current page requires authentication.
+            console.log("routesecurity:checkcurrent");
             if (this._state.current) {
                 this._authRequiredRedirect(this._state.current, this._loginPath);
             }
@@ -66,17 +68,21 @@
         // A function to check whether the current path requires authentication,
         // and if so, whether a redirect to a login page is needed.
         _authRequiredRedirect: function (state, path) {
+            console.log("routesecurity:_autRequiredRedirect");
             if (state.authRequired && !this._authenticated) {
                 if (state.pathTo === undefined) {
                     this._redirectTo = this._location.path();
                 } else {
                     this._redirectTo = state.pathTo === path ? "/" : state.pathTo;
                 }
+                console.log("routesecurity:_autRequiredRedirect - redirecting to %s", path);
                 this._redirect(path);
             }
             else if (this._authenticated && this._location.path() === this._loginPath) {
+                console.log("routesecurity:_autRequiredRedirect - redirecting to /");
                 this._redirect("/");
             }
+            console.log("routesecurity:_autRequiredRedirect - doing nothing");
         }
     };
 }(angular = window.angular || {});

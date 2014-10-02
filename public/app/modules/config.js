@@ -9,6 +9,8 @@
 
     .constant("ANONYMOUS_ID", "local:anonymous")
 
+    .constant("LOCAL_PROVIDER", "local")
+
     .constant("loginRedirectPath", "/signin")
 
     ;

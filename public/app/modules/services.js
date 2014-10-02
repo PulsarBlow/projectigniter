@@ -53,32 +53,33 @@
 
         .factory("user2", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", function user2Factory($FirebaseObject, $firebase, fbutil, FBURL) {
 
-            var UserFactory = $FirebaseObject.$extendFactory({
-                // Create user if it doesn't exist
-                tryCreateUser: function(userId, userData) {
-                    if(!userId) { throw new Error("userId is not valid");}
-                    if(!userData) { throw new Error("userData is not valid");}
+            // Create user if it doesn't exist
+            function tryCreateUser (userId, userData) {
+                if(!userId) { throw new Error("userId is not valid");}
+                if(!userData) { throw new Error("userData is not valid");}
 
-                    var $fb = fbutil.fb("users/" + userId);
+                var $fb = fbutil.fb("users/" + userId);
 
-                    return $fb.$transaction(function(currentData){
-                        if(currentData === null) {
-                            return userData;
-                        }
-
-                    });
-                },
-                // Parse a user from the login info
-                parseUser: function(data) {
-                    if(!angular.isObject(data) || !data) { return null; }
-                    return {
-                        id: data.uid || "local:anonymous",
-                        provider: data.provider || "local",
-                        providerId: data.id || "local:anonymous",
-                        accessToken: data.accessToken || null,
-                        displayName: data.displayName || "Anonymous"
+                return $fb.$transaction(function(currentData){
+                    if(currentData === null) {
+                        return userData;
                     }
+                });
+            }
+
+            function parseUser (data) {
+                if(!angular.isObject(data) || !data) { return null; }
+                return {
+                    id: data.uid || "local:anonymous",
+                    provider: data.provider || "local",
+                    providerId: data.id || "local:anonymous",
+                    accessToken: data.accessToken || null,
+                    displayName: data.displayName || "Anonymous"
                 }
+            }
+
+            var UserFactory = $FirebaseObject.$extendFactory({
+                tryCreateUser: tryCreateUser
             });
 
             return function(userId) {
@@ -163,6 +164,141 @@
                 var ref = new Firebase(FBURL).child("userProfiles").child(userId);
                 var sync = $firebase(ref, {objectFactory: UserProfileFactory });
                 return sync.$asObject();
+            };
+        }])
+
+        .factory(
+        "userData", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", "ANONYMOUS_ID", "LOCAL_PROVIDER",
+        function userDataFactory($FirebaseObject, $firebase, fbutil, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
+
+            function guardUserLoginInfo(userLoginInfo) {
+                if(!angular.isObject(userLoginInfo)) {
+                    throw new Error("userLoginInfo is not an object");
+                }
+
+                if(!userLoginInfo.uid) {
+                    throw new Error("userLoginInfo.uid is not valid");
+                }
+            }
+
+            function parseUser (data) {
+                if(!angular.isObject(data) || !data) { return null; }
+                return {
+                    id: data.uid || ANONYMOUS_ID,
+                    provider: data.provider || LOCAL_PROVIDER,
+                    providerId: data.id || ANONYMOUS_ID,
+                    accessToken: data.accessToken || null,
+                    displayName: data.displayName || "Anonymous"
+                }
+            }
+
+            function parseUserProfile(data) {
+
+                if(!angular.isObject(data) ||
+                    !angular.isObject(data.thirdPartyUserData)) {
+                    return null;
+                }
+                return parseProviderData(data.provider, data.thirdPartyUserData);
+            }
+
+            function parseProviderData(provider, providerUserData) {
+                if(!angular.isString(provider) || !provider) { throw new Error("Invalid provider"); }
+                if(!angular.isObject(providerUserData)) { throw new Error("Invalid providerUserData"); }
+
+                switch (angular.lowercase(provider)) {
+                    case "facebook":
+                        return parseFacebookData(providerUserData);
+                    case "google":
+                        return parseGoogleData(providerUserData);
+                    default:
+                        throw new Error("Unable to parse user. Provider ["+ provider + "] is not supported");
+                }
+            }
+
+            function parseFacebookData(data) {
+                if(!data) { return {}; }
+                return {
+                    email: data.email || null,
+                    email_verified: false,
+                    realName: data.name || null,
+                    gender: data.gender || null,
+                    page_url: data.link || null,
+                    picture_url: parsePictureUrl(data.picture),
+                    locale: data.locale || "fr_FR"
+                };
+
+                function parsePictureUrl(pictureObj) {
+                    if(!angular.isObject(pictureObj) || !pictureObj || !pictureObj.data) { return null; }
+                    return pictureObj.data.url;
+                }
+            }
+
+            function parseGoogleData(data) {
+                if(!data) { return {}; }
+                return {
+                    email: data.email || null,
+                    email_verified: data.verified_email || false,
+                    realName: data.name || null,
+                    gender: data.gender || null,
+                    page_url: data.link || null,
+                    picture_url: data.picture || null,
+                    locale: data.locale || "fr_FR"
+                };
+            }
+
+            var UserFactory = $FirebaseObject.$extendFactory({
+
+            });
+            var UserProfileFactory = $FirebaseObject.$extendFactory({
+
+            });
+
+            return {
+
+                /**
+                 * Create user data record if it doesn't exist in firebase
+                 * @param userLoginInfo
+                 * @returns {Promise} A deferred promise
+                 */
+                tryCreateUser: function(userLoginInfo) {
+                    guardUserLoginInfo(userLoginInfo);
+
+                    var $fb = fbutil.fb("users/" + userLoginInfo.uid);
+
+                    return $fb.$transaction(function(currentData){
+                        if(currentData === null) {
+                            return parseUser(userLoginInfo);
+                        }
+                    });
+                },
+
+                /**
+                 * Create userProfile data record if it doesn't exist in firebase
+                 * @param userLoginInfo
+                 * @returns {Promise} A deferred promise
+                 */
+                tryCreateUserProfile: function (userLoginInfo) {
+                    guardUserLoginInfo(userLoginInfo);
+
+                    var $fb = fbutil.fb("userProfiles/" + userLoginInfo.uid);
+
+                    return $fb.$transaction(function(currentData){
+                        if(currentData === null) {
+                            return parseUserProfile(userLoginInfo);
+                        }
+                    });
+                },
+
+                syncUser: function(userId) {
+                    var ref = new Firebase(FBURL).child("users").child(userId);
+                    var sync = $firebase(ref, {objectFactory: UserFactory });
+                    return sync.$asObject();
+                },
+                syncUserProfile: function(userId) {
+                    var ref = new Firebase(FBURL).child("userProfiles").child(userId);
+                    var sync = $firebase(ref, {objectFactory: UserFactory });
+                    return sync.$asObject();
+                }
             };
         }])
 

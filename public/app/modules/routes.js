@@ -22,95 +22,100 @@
 
             $stateProvider
 
-                // Abstract state to resolve user before triggering state transition
-                .state("app", {
-                    abstract: true,
-                    template: "<ui-view />",
-                    resolve: {
-                        requireUser: "requireUser",
-                        currentUser: function(requireUser) {
-                            return requireUser();
-                        }
-                    },
-                    controller : function($scope, currentUser) {
-                        $scope.currentUser = currentUser;
-                    }
-                })
-
-                .state("app.home", {
-                    url: "/",
-                    templateUrl: "app/views/index.html",
-                    authRequired: true
-                })
-
-                .state ("concept", {
-                    url: "/concept",
-                    templateUrl: "app/views/pages/concept.html",
-                    authRequired: true
-                })
-
-                .state("vote", {
-                    url: "/vote",
-                    templateUrl: "app/views/pages/vote.html",
-                    authRequired: true
-                })
-
-                .state("vote.create", {
-                    url: "/create",
-                    templateUrl: "app/views/pages/vote/create.html",
-                    authRequired: true
-                })
-
-                .state("vote.create.step0", {
-                    url: "/about",
-                    templateUrl: "app/views/pages/vote/create.step0.html",
-                    authRequired: true
-                })
-
-                .state("vote.create.step1", {
-                    url: "/select",
-                    templateUrl: "app/views/pages/vote/create.step1.html",
-                    authRequired: true
-                })
-
-                .state("vote.create.step2", {
-                    url: "/points",
-                    templateUrl: "app/views/pages/vote/create.step2.html",
-                    authRequired: true
-                })
-
-                .state("vote.create.step3", {
-                    url: "/submit",
-                    templateUrl: "app/views/pages/vote/create.step3.html",
-                    authRequired: true
-                })
-
-                .state("vote.edit", {
-                    url: "/edit",
-                    templateUrl: "app/views/pages/vote/edit.html",
-                    authRequired: true
-                })
-
-                .state("results", {
-                    url: "/results",
-                    templateUrl: "app/views/pages/results.html",
-                    authRequired: true
-                })
-
                 .state("signin", {
                     url: "/signin",
-                    templateUrl: "app/views/signin.html"
-                })
-
-                .state("account", {
-                    url: "/account",
-                    templateUrl: "app/views/pages/account.html",
-                    authRequired: true
+                    templateUrl: "app/views/signin.html",
+                    authRequired: false
                 })
 
                 .state("404", {
                     url: "/404",
-                    templateUrl: "app/views/404.html"
+                    templateUrl: "app/views/404.html",
+                    authRequired: false
+                })
+
+                // Abstract state to resolve user before triggering state transition
+                .state("app", {
+                    abstract: true,
+                    //authRequired: true, // This doesn't work. This property is not inherited by child states. Have to set it everywhere ...
+                    url:"",
+                    templateUrl: "app/views/index.html",
+                    controller : "AppController",
+                    resolve: {
+                        requireUser: "requireUser",
+                        userLoginInfo: function(requireUser) {
+                            return requireUser();
+                        }
+                    }
+                })
+
+                .state("app.home", {
+                    authRequired: true,
+                    url: "/",
+                    templateUrl: "app/views/pages/home.html",
+                    controller: "HomeController"
+                })
+
+                .state ("app.concept", {
+                    authRequired: true,
+                    url: "/concept",
+                    templateUrl: "app/views/pages/concept.html"
+                })
+
+                .state("app.vote", {
+                    authRequired: true,
+                    url: "/vote",
+                    templateUrl: "app/views/pages/vote.html",
+                    controller: "VoteController"
+                })
+
+                .state("app.vote.create", {
+                    authRequired: true,
+                    url: "/create",
+                    templateUrl: "app/views/pages/vote/create.html"
+                })
+
+                .state("app.vote.create.step0", {
+                    authRequired: true,
+                    url: "/about",
+                    templateUrl: "app/views/pages/vote/create.step0.html"
+                })
+
+                .state("app.vote.create.step1", {
+                    authRequired: true,
+                    url: "/select",
+                    templateUrl: "app/views/pages/vote/create.step1.html",
+                    controller: "VoteSelectionController"
+                })
+
+                .state("app.vote.create.step2", {
+                    authRequired: true,
+                    url: "/points",
+                    templateUrl: "app/views/pages/vote/create.step2.html"
+                })
+
+                .state("app.vote.create.step3", {
+                    authRequired: true,
+                    url: "/submit",
+                    templateUrl: "app/views/pages/vote/create.step3.html"
+                })
+
+                .state("app.vote.edit", {
+                    authRequired: true,
+                    url: "/edit",
+                    templateUrl: "app/views/pages/vote/edit.html"
+                })
+
+                .state("app.results", {
+                    authRequired: true,
+                    url: "/results",
+                    templateUrl: "app/views/pages/results.html"
+                })
+
+                .state("app.account", {
+                    authRequired: true,
+                    url: "/account",
+                    templateUrl: "app/views/pages/account.html"
                 })
 
         }])

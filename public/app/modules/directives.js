@@ -3,7 +3,7 @@
 
     angular.module("app.directives", [])
 
-        .directive("navToggler", ["$rootScope", "user", function ($rootScope, user) {
+        .directive("navToggler", ["$rootScope", function ($rootScope) {
             return {
                 restrict: 'A',
                 link: function (scope, ele, attrs) {
