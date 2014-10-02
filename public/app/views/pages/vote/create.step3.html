@@ -1,0 +1,20 @@
+<section data-ng-controller="VoteCastController">
+    <div class="callout callout-info">
+        <h4>Revue et vote</h4>
+        <p>Passez en revue votre vote et cliquez sur le bouton <span class="label label-success">vote</span>. Vous pouvez revenir en arrière pour faire des modifications.</p>
+    </div>
+    <div class="list-group" ng-model="favorites">
+        <div class="list-group-item clearfix" ng-repeat="name in favorites">
+            <span>{{name.value}}</span>
+                <span class="pull-right item-actions">
+                    <span class="item-points label label-default">{{getPoints($index)}} pts</span>
+                </span>
+        </div>
+    </div>
+    <div class="text-center" style="margin-bottom: 2em;">
+        <a class="btn btn-lg btn-block btn-success btn-lg" data-ng-click="vote()">VOTE</a>
+    </div>
+    <div class="step-actions panel-footer clearfix">
+        <div class="pull-left"><a class="btn btn-primary btn-direction btn-left" ui-sref="vote.create.step2">Précedent</a></div>
+    </div>
+</section>

@@ -1,0 +1,111 @@
+.wizard {
+
+  @blue: hsl(206, 72%, 68%);
+  @green: hsl(120, 42%, 54%);
+  @white: hsl(0, 0%, 100%);
+  @grey: hsl(226, 10%, 55%);
+  @disa: hsl(226, 15%, 83%);
+
+  .steps {
+    counter-reset: step_counter;
+    list-style-type: none;
+    display: block;
+    margin:0;
+    padding: 0;
+    text-align: center;
+
+    .step {
+      margin:0;
+      padding:0;
+      width: 40px;
+      height: 40px;
+      background-color: @disa;
+      display: inline-block;
+      //border: 4px solid;
+      //border-color: transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      color: @white;
+      font-weight: 600;
+      text-align: center;
+      line-height: 35px;
+
+      &::before {
+
+      }
+
+      &::after {
+        width: 150px;
+        display: block;
+        .lh-transform(translate(-55px, 3px));
+        color: @grey;
+        content: attr(data-desc);
+        font-weight: 400;
+        font-size: 13px;
+      }
+
+      &:first-child {
+        line-height: 40px;
+
+        &::after {
+          .lh-transform(translate(-55px, -1px));
+        }
+
+      }
+
+      &:nth-child(n+2) {
+        margin: 0 0 0 100px;
+        .lh-transform(translate(0, -4px));
+
+        &::before {
+          width: 75px;
+          height: 3px;
+          display: block;
+          background-color: @disa;
+          .lh-transform(translate(-90px, 21px));
+          content: '';
+        }
+
+      }
+
+      .number {
+        &::before {
+          content: step_counter;
+          counter-increment: step_counter;
+        }
+      }
+    }
+
+    .step.active {
+      background-color: @blue;
+      border-color: @blue;
+      color: @white;
+      &::before {
+        background: linear-gradient(to right, @disa 0%, @blue 100%);
+      }
+      &::after {
+        color: @blue;
+      }
+    }
+
+    .step.done {
+      background-color: @green;
+      border-color: @green;
+      color: @white;
+      &::before {
+        background-color: @green;
+        
+      }
+      &::after {
+
+      }
+      &.number {
+        &::before {
+          font-family: FontAwesome;
+          content: '\f00c';
+          counter-increment: step-counter;
+        }
+      }
+    }
+  }
+}

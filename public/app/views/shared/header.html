@@ -1,0 +1,39 @@
+<header class="top-header clearfix">
+
+    <div class="logo bg-primary">
+        <a ui-sref="home">
+            <span>{{main.brand}}</span>
+        </a>
+    </div>
+
+    <div class="menu-button" toggle-off-canvas>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </div>
+
+    <div class="top-nav">
+        <ul class="nav-left list-unstyled">
+            <li>
+                <a href="" data-nav-toggler class="toggle-min"><i class="fa fa-reorder"></i></a>
+            </li>
+        </ul>
+
+        <ul class="nav-right pull-right list-unstyled">
+            <li class="text-normal nav-profile">
+                <a ui-sref="account">
+                    <img src="images/g1.jpg" alt="" class="img-circle img30_30">
+                    <span class="hidden-xs">
+                        <span>{{currentUser.displayName}}</span>
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a href="" title="Se déconnecter" data-ng-click="signout()">
+                    <i class="fa fa-sign-out"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+</header>
