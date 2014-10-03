@@ -1,4 +1,23 @@
-<div class="page-header clearfix">
-    <h3>Votre vote</h3>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-offset-3 col-md-6">
+            <div class="callout callout-info">
+                <h4>Vote enregistré</h4>
+                <p>Ci-dessous le vote que vous avez enregistré. Vous pouvez le supprimer pour enregistrer un nouveau vote.</p>
+            </div>
+            <div class="list-group">
+                <div class="list-group-item clearfix" ng-repeat="voteItem in userVote">
+                    <span>#{{$index + 1}}</span>
+                    <span>{{voteItem.value}}</span>
+                <span class="pull-right item-actions">
+                    <span class="item-points label label-default">{{voteItem.points}} pts</span>
+                </span>
+                </div>
+            </div>
+            <div class="text-center" style="margin-bottom: 2em;">
+                <a class="btn btn-lg btn-block btn-danger btn-lg" data-ng-click="deleteVote()">SUPPRIMER ET REVOTER</a>
+            </div>
+        </div>
+    </div>
 </div>
 

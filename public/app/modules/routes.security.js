@@ -2,13 +2,14 @@
 !function (angular) {
     "use strict";
     angular.module("app")
-        .run(function ($injector, $location, $rootScope, loginRedirectPath) {
+        .run(function ($injector, $log, $location, $rootScope, loginRedirectPath) {
             if ($injector.has("$state")) {
-                new RouteSecurityManager($location, $rootScope, $injector.get("$state"), loginRedirectPath);
+                new RouteSecurityManager($log, $location, $rootScope, $injector.get("$state"), loginRedirectPath);
             }
         });
 
-    function RouteSecurityManager($location, $rootScope, $state, path) {
+    function RouteSecurityManager($log, $location, $rootScope, $state, path) {
+        this._log = $log;
         this._state = $state;
         this._location = $location;
         this._rootScope = $rootScope;
@@ -20,13 +21,14 @@
 
     RouteSecurityManager.prototype = {
         _init: function () {
+            this._log.debug("routesecurity:_init");
             var self = this;
             this._checkCurrent();
 
             // Set up a handler for all future route changes, so we can check
             // if authentication is required.
             self._rootScope.$on("$stateChangeStart", function (e, next) {
-                console.log("routesecurity:$stateChangeStart");
+                self._log.debug("routesecurity:$stateChangeStart for state [%s]", next.name || "unamed");
                 self._authRequiredRedirect(next, self._loginPath);
             });
 
@@ -37,25 +39,29 @@
 
         _checkCurrent: function () {
             // Check if the current page requires authentication.
-            console.log("routesecurity:checkcurrent");
+            this._log.debug("routesecurity:_checkcurrent");
             if (this._state.current) {
                 this._authRequiredRedirect(this._state.current, this._loginPath);
             }
         },
 
         _login: function () {
+            this._log.debug("routesecurity:_login");
             this._authenticated = true;
             if (this._redirectTo) {
+                this._log.debug("routesecurity:_login - _redirectTo is defined [%s]", this._redirectTo);
                 this._redirect(this._redirectTo);
                 this._redirectTo = null;
             }
             else if (this._location.path() === this._loginPath) {
+                this._log.debug("routesecurity:_login - Signin reentrance detected - Redirecting to /");
                 this._location.replace();
                 this._location.path("/");
             }
         },
 
         _logout: function () {
+            this._log.debug("routesecurity:_logout");
             this._authenticated = false;
             this._checkCurrent();
         },
@@ -68,21 +74,21 @@
         // A function to check whether the current path requires authentication,
         // and if so, whether a redirect to a login page is needed.
         _authRequiredRedirect: function (state, path) {
-            console.log("routesecurity:_autRequiredRedirect");
+            this._log.debug("routesecurity:_autRequiredRedirect for state [%s] - Enter", state.name || "unamed");
             if (state.authRequired && !this._authenticated) {
                 if (state.pathTo === undefined) {
                     this._redirectTo = this._location.path();
                 } else {
                     this._redirectTo = state.pathTo === path ? "/" : state.pathTo;
                 }
-                console.log("routesecurity:_autRequiredRedirect - redirecting to %s", path);
+                this._log.debug("routesecurity:_autRequiredRedirect for state [%s] - Redirecting to [%s]", state.name || "unamed", path);
                 this._redirect(path);
             }
             else if (this._authenticated && this._location.path() === this._loginPath) {
-                console.log("routesecurity:_autRequiredRedirect - redirecting to /");
+                this._log.debug("routesecurity:_autRequiredRedirect for state [%s] - Redirecting to /", state.name || "unamed");
                 this._redirect("/");
             }
-            console.log("routesecurity:_autRequiredRedirect - doing nothing");
+            this._log.debug("routesecurity:_autRequiredRedirect for state [%s] - Exit", state.name || "unamed");
         }
     };
 }(angular = window.angular || {});

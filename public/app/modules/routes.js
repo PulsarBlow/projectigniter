@@ -25,6 +25,7 @@
                 .state("signin", {
                     url: "/signin",
                     templateUrl: "app/views/signin.html",
+                    controller: "SigninController",
                     authRequired: false
                 })
 
@@ -66,7 +67,13 @@
                     authRequired: true,
                     url: "/vote",
                     templateUrl: "app/views/pages/vote.html",
-                    controller: "VoteController"
+                    controller: "VoteController",
+                    resolve: {
+                        votes: "votes",
+                        userVote: function(userLoginInfo, votes) {
+                            return votes.syncUserVote(userLoginInfo.uid).$loaded();
+                        }
+                    }
                 })
 
                 .state("app.vote.create", {
@@ -91,19 +98,22 @@
                 .state("app.vote.create.step2", {
                     authRequired: true,
                     url: "/points",
-                    templateUrl: "app/views/pages/vote/create.step2.html"
+                    templateUrl: "app/views/pages/vote/create.step2.html",
+                    controller: "VoteSortingController"
                 })
 
                 .state("app.vote.create.step3", {
                     authRequired: true,
-                    url: "/submit",
-                    templateUrl: "app/views/pages/vote/create.step3.html"
+                    url: "/cast",
+                    templateUrl: "app/views/pages/vote/create.step3.html",
+                    controller: "VoteCastController"
                 })
 
                 .state("app.vote.edit", {
                     authRequired: true,
                     url: "/edit",
-                    templateUrl: "app/views/pages/vote/edit.html"
+                    templateUrl: "app/views/pages/vote/edit.html",
+                    controller: "VoteEditController"
                 })
 
                 .state("app.results", {

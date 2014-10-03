@@ -34,36 +34,43 @@
             var syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
             syncUserProfile.$bindTo($scope, "userProfile");
 
-            $scope.main = {
-                brand: "Project Igniter",
-                err: null
-            };
-
             $scope.signout = function() {
-                $scope.main.err = null;
                 simpleLogin.logout();
             };
 
         }])
 
 
+
         .controller("HomeController", ["$log", "$scope", function ($log, $scope) {
             $log.debug("HomeController instantiated");
         }])
 
-        .controller("VoteController", ["$log", "$scope", "$state", "names", "user", "userFavorites",
-            function ($log, $scope, $state, names, user, userFavorites) {
+        .controller("VoteController", ["$log", "$scope", "$state", "names", "userVote", "userFavorites",
+            function ($log, $scope, $state, names, userVote, userFavorites) {
 
-            $log.debug("VoteController instantiated", {scope: $scope, names: names, user: user, userFavorites: userFavorites});
+            $log.debug("VoteController instantiated", {
+                scope: $scope,
+                names: names,
+                userVote: userVote,
+                userFavorites: userFavorites
+            });
 
             // if has vote go to vote edit, otherwise go to vote.create
-            $state.go("app.vote.create.step0");
-            $scope.favorites = userFavorites;
+//            if(userVote === null) {
+//                $state.go("app.vote.create.step0");
+//            } else {
+//                $state.go("app.vote.edit");
+//            }
+
+            $scope.userVote = userVote;
+
             $scope.getPoints = function (index) {
                 return Math.pow(2, userFavorites.maxItems - index);
             };
-
-            $log.debug("user", user);
+            $scope.hasVote = function() {
+              return $scope.userVote !== null && $scope.userVote.length > 0;
+            };
         }])
 
         .controller("VoteSelectionController", ["$log", "$scope", "names", "user", "userFavorites",
@@ -91,19 +98,20 @@
         .controller("VoteSortingController", ["$log", "$scope", "userFavorites",
             function($log, $scope, userFavorites){
 
-            $log.debug("VoteSortingController instantiated", {scope: $scope, userFavorites: userFavorites});
+            $log.debug("VoteSortingController instantiated", {scope: $scope});
 
+            $scope.favorites = userFavorites;
             $scope.sortableOptions = {
                 opacity: 0.5,
                 axis: "y"
             };
         }])
 
-        .controller("VoteCastController", ["$log", "$scope", "$state", "votes", "user", "userFavorites", "notifier",
-            function($log, $scope, $state, votes, user, userFavorites, notifier){
+        .controller("VoteCastController", ["$log", "$scope", "$state", "votes", "userFavorites", "notifier",
+            function($log, $scope, $state, votes, userFavorites, notifier){
 
             $log.debug("VoteCastController instantiated");
-
+            $scope.favorites = userFavorites;
             $scope.vote = function () {
                 var voteSet = [];
 
@@ -111,19 +119,25 @@
                     voteSet.push(({value: name.value, id: name.id, points: $scope.getPoints(index) }));
                 });
 
-                votes.saveVote(user.id, voteSet).then(function(){
-                    user.saveVote(voteSet).then(function() {
-                        userFavorites.$clear();
-                        notifier.success("Vote enregistré! Merci de votre participation.")
-                        $state.go("results");
-
-                    }, function(){
-                        notifier.error("Echec de l'enregistrement du vote. Veuillez réessayer.");
-                    });
+                votes.saveVote($scope.user.id, voteSet).then(function(){
+                    userFavorites.$clear();
+                    notifier.success("Vote enregistré! Merci de votre participation.")
+                    $state.go("app.results");
                 }, function() {
                     notifier.error("Echec de l'enregistrement du vote. Veuillez réessayer.");
                 });
             };
+        }])
+
+        .controller("VoteEditController", ["$log", "$scope", "$state", "notifier", "votes", "userVote", function($log, $scope, $state, notifier, votes, userVote) {
+            $log.debug("VoteEditController instantiated", {
+                userVote: userVote
+            })
+
+            $scope.deleteVote = function() {
+                notifier.success("Vote supprimé! Vous pouvez revoter.")
+                $state.go("app.vote.create.step1");
+            }
         }])
 
         .controller("ResultsController", ["$log", "$scope", function ($log, $scope) {

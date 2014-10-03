@@ -12,14 +12,43 @@
             return fbutil.syncArray("users");
         }])
 
-        .factory("votes", ["fbutil", function votesFactory(fbutil) {
-            var votes = fbutil.syncArray("votes");
-            votes.saveVote = function(userId, voteSet) {
-                if(!userId || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
-                var data = createVoteData(voteSet);
-                return votes.$inst().$set(userId, data);
+        .factory("votes", ["$q", "fbutil", function votesFactory($q, fbutil) {
+
+            function createVoteData(voteSet) {
+                if(!voteSet || !angular.isArray(voteSet)) { throw new Error("voteSet is not valid"); }
+                // Order voteSet by descending points value
+                voteSet.sort(function (item1, item2) {
+                    return item2.points - item1.points;
+                });
+                var data = { };
+                voteSet.forEach(function (item, index) {
+                    // padded key : 001, 002 etc.
+                    data[S(item.id).padLeft(3, "0").s] = item;
+                });
+                return data;
+            }
+
+            return {
+                syncVotes: function() {
+                    return fbutil.syncArray("votes");
+                },
+                syncUserVote: function(userId) {
+                    return fbutil.syncArray("votes/" + userId);
+                },
+                saveVote: function(userId, voteSet) {
+                    if(!userId || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
+
+                    var fb = fbutil.fb("votes"),
+                        data = createVoteData(voteSet);
+                    return fb.$set(userId, data);
+                },
+                deleteVote: function(userId) {
+                    if(!userId) { throw new Error("Invalid userId"); }
+
+                    var fb = fbutil.fb("votes");
+                    return fb.$remove(userId);
+                }
             };
-            return votes;
         }])
 
         .factory("user", ["fbutil", "ANONYMOUS_ID", function userFactory(fbutil, ANONYMOUS_ID) {
@@ -167,8 +196,7 @@
             };
         }])
 
-        .factory(
-        "userData", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", "ANONYMOUS_ID", "LOCAL_PROVIDER",
+        .factory("userData", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", "ANONYMOUS_ID", "LOCAL_PROVIDER",
         function userDataFactory($FirebaseObject, $firebase, fbutil, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
 
             function guardUserLoginInfo(userLoginInfo) {
@@ -249,9 +277,11 @@
             var UserFactory = $FirebaseObject.$extendFactory({
 
             });
+
             var UserProfileFactory = $FirebaseObject.$extendFactory({
 
             });
+
 
             return {
 
@@ -289,11 +319,22 @@
                     });
                 },
 
+                /**
+                 * Create a synchronized user
+                 * @param userId
+                 * @returns {*}
+                 */
                 syncUser: function(userId) {
                     var ref = new Firebase(FBURL).child("users").child(userId);
                     var sync = $firebase(ref, {objectFactory: UserFactory });
                     return sync.$asObject();
                 },
+
+                /**
+                 * Create a synchronized userProfile
+                  * @param userId
+                 * @returns {*}
+                 */
                 syncUserProfile: function(userId) {
                     var ref = new Firebase(FBURL).child("userProfiles").child(userId);
                     var sync = $firebase(ref, {objectFactory: UserFactory });
@@ -301,8 +342,6 @@
                 }
             };
         }])
-
-
 
         .factory("userFavorites", ["MAX_FAVORITES", function userFavoritesFactory(MAX_FAVORITES) {
             var userFavorites = new FavoriteDictionary(MAX_FAVORITES);
@@ -399,17 +438,4 @@
         return list;
     }
 
-    function createVoteData(voteSet) {
-        if(!voteSet || !angular.isArray(voteSet)) { throw new Error("voteSet is not valid"); }
-        // Order voteSet by descending points value
-        voteSet.sort(function (item1, item2) {
-            return item2.points - item1.points;
-        });
-        var data = { };
-        voteSet.forEach(function (item, index) {
-            // padded key : 001, 002 etc.
-            data[S(item.id).padLeft(3, "0").s] = item;
-        });
-        return data;
-    }
 }(angular = window.angular || {});

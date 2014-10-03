@@ -6,6 +6,7 @@
         "app.routes",
         "app.controllers",
         "app.directives",
+        "app.decorators",
         "app.filters",
         "app.services",
         "ui.sortable"
@@ -15,9 +16,13 @@
     .config(['$compileProvider', function ($compileProvider) {
         $compileProvider.debugInfoEnabled(true);
     }])
-    .run(["$log", "simpleLogin", function($log, simpleLogin) {
+    .run(["$log", "$rootScope", "simpleLogin", function($log, $rootScope, simpleLogin) {
         $log.debug('Running app'); //debug
-        simpleLogin.getUser();
+        simpleLogin.getUser().then(function(data) {
+            $rootScope.auth = $rootScope.auth || {};
+            $rootScope.auth.user = data;
+            $log.debug('$rootScope auth is set'); //debug
+        });
     }]);
 
 }(angular = window.angular || {});
