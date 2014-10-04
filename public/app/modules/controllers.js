@@ -3,27 +3,32 @@
 
     angular.module("app.controllers", ["firebase.utils"])
 
-        .controller("SigninController", ["$log", "$scope", "$state", "simpleLogin",
-            function ($log, $scope, $state, simpleLogin) {
+        .controller("SigninController", ["$log", "$scope", "$location", "simpleLogin", "userLoginInfo",
+            function ($log, $scope, $location, simpleLogin, userLoginInfo) {
 
-                $log.debug("SigninController instantiated");
+                $log.debug("SigninController instantiated", {userLoginInfo: userLoginInfo});
+
+                if(angular.isObject(userLoginInfo) && userLoginInfo.uid) {
+
+                    $log.debug("SigninController:authCheck", {
+                        userLoginInfo: userLoginInfo,
+                        uid: userLoginInfo.uid
+                    });
+
+                    $location.replace();
+                    $location.path("/");
+                }
 
                 $scope.signin = function (provider) {
-                    simpleLogin.login(provider)
-                        .then(function (user) {
-                            $log.debug("User signed in", user);
-                            $state.go("app.home");
-                        }, function (err) {
-                            $log.error("Unable to login", err);
-                        });
+                    simpleLogin.login(provider);
                 };
             }])
 
-        // currentUser is resolved by the state resolver (route.js)
-        .controller("AppController", ["$log", "$scope", "$rootScope", "simpleLogin", "userLoginInfo", "userData",
-            function ($log, $scope, $rootScope, simpleLogin, userLoginInfo, userData) {
+        // userLoginInfo is resolved by the state resolver (route.js)
+        .controller("AppController", ["$log", "$scope", "simpleLogin", "dataSync", "userLoginInfo", "userData",
+            function ($log, $scope, simpleLogin, dataSync, userLoginInfo, userData) {
 
-            $log.debug("AppController instantiated", {userLoginInfo: userLoginInfo});
+            $log.debug("AppController instantiated", {dataSync: dataSync, userLoginInfo: userLoginInfo});
 
             userData.tryCreateUser(userLoginInfo);
             userData.tryCreateUserProfile(userLoginInfo);
@@ -37,10 +42,7 @@
             $scope.signout = function() {
                 simpleLogin.logout();
             };
-
         }])
-
-
 
         .controller("HomeController", ["$log", "$scope", function ($log, $scope) {
             $log.debug("HomeController instantiated");
@@ -49,19 +51,7 @@
         .controller("VoteController", ["$log", "$scope", "$state", "names", "userVote", "userFavorites",
             function ($log, $scope, $state, names, userVote, userFavorites) {
 
-            $log.debug("VoteController instantiated", {
-                scope: $scope,
-                names: names,
-                userVote: userVote,
-                userFavorites: userFavorites
-            });
-
-            // if has vote go to vote edit, otherwise go to vote.create
-//            if(userVote === null) {
-//                $state.go("app.vote.create.step0");
-//            } else {
-//                $state.go("app.vote.edit");
-//            }
+            $log.debug("VoteController instantiated");
 
             $scope.userVote = userVote;
 
@@ -73,10 +63,10 @@
             };
         }])
 
-        .controller("VoteSelectionController", ["$log", "$scope", "names", "user", "userFavorites",
-            function($log, $scope, names, user, userFavorites){
+        .controller("VoteSelectionController", ["$log", "$scope", "names", "userFavorites",
+            function($log, $scope, names, userFavorites){
 
-            $log.debug("VoteSelectionController instantiated", {scope: $scope, names: names, user: user, userFavorites: userFavorites});
+            $log.debug("VoteSelectionController instantiated");
 
             $scope.names = names;
             $scope.maxItems = userFavorites.maxItems;
@@ -95,10 +85,16 @@
             };
         }])
 
-        .controller("VoteSortingController", ["$log", "$scope", "userFavorites",
-            function($log, $scope, userFavorites){
+        .controller("VoteSortingController", ["$log", "$scope", "$location", "userFavorites",
+            function($log, $scope, $location, userFavorites){
 
             $log.debug("VoteSortingController instantiated", {scope: $scope});
+
+            if(!userFavorites || !userFavorites.isFull()) {
+                $location.replace();
+                $location.path("/vote/create/about");
+                return;
+            }
 
             $scope.favorites = userFavorites;
             $scope.sortableOptions = {
@@ -107,10 +103,17 @@
             };
         }])
 
-        .controller("VoteCastController", ["$log", "$scope", "$state", "votes", "userFavorites", "notifier",
-            function($log, $scope, $state, votes, userFavorites, notifier){
+        .controller("VoteCastController", ["$log", "$scope", "$location", "$state", "votes", "userFavorites", "notifier",
+            function($log, $scope, $location, $state, votes, userFavorites, notifier){
 
             $log.debug("VoteCastController instantiated");
+
+            if(!userFavorites || !userFavorites.isFull()) {
+                $location.replace();
+                $location.path("/vote/create/about");
+                return;
+            }
+
             $scope.favorites = userFavorites;
             $scope.vote = function () {
                 var voteSet = [];
@@ -121,7 +124,7 @@
 
                 votes.saveVote($scope.user.id, voteSet).then(function(){
                     userFavorites.$clear();
-                    notifier.success("Vote enregistré! Merci de votre participation.")
+                    notifier.success("<strong>Vote enregistré!</strong><br />Merci de votre participation.")
                     $state.go("app.results");
                 }, function() {
                     notifier.error("Echec de l'enregistrement du vote. Veuillez réessayer.");
@@ -129,13 +132,20 @@
             };
         }])
 
-        .controller("VoteEditController", ["$log", "$scope", "$state", "notifier", "votes", "userVote", function($log, $scope, $state, notifier, votes, userVote) {
+        .controller("VoteEditController", ["$log", "$location", "$scope", "$state", "notifier", "votes", "userVote", function($log, $location, $scope, $state, notifier, votes, userVote) {
             $log.debug("VoteEditController instantiated", {
                 userVote: userVote
             })
 
+            if(!userVote || userVote.length === 0) {
+                $location.replace();
+                $location.path("/vote/create/about");
+                return;
+            }
+
             $scope.deleteVote = function() {
-                notifier.success("Vote supprimé! Vous pouvez revoter.")
+                votes.deleteVote($scope.user.id);
+                notifier.success("<strong>Vote supprimé!</strong><br />Vous pouvez revoter.")
                 $state.go("app.vote.create.step1");
             }
         }])

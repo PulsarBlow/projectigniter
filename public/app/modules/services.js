@@ -8,10 +8,6 @@
             return fbutil.syncArray("names");
         }])
 
-        .factory("users", ["fbutil", function usersFactory(fbutil) {
-            return fbutil.syncArray("users");
-        }])
-
         .factory("votes", ["$q", "fbutil", function votesFactory($q, fbutil) {
 
             function createVoteData(voteSet) {
@@ -28,13 +24,15 @@
                 return data;
             }
 
+            var syncUserVote = function(userId) {
+                return fbutil.syncArray("votes/" + userId);
+            };
+
             return {
                 syncVotes: function() {
                     return fbutil.syncArray("votes");
                 },
-                syncUserVote: function(userId) {
-                    return fbutil.syncArray("votes/" + userId);
-                },
+                syncUserVote: syncUserVote,
                 saveVote: function(userId, voteSet) {
                     if(!userId || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
 
@@ -49,73 +47,6 @@
                     return fb.$remove(userId);
                 }
             };
-        }])
-
-        .factory("user", ["fbutil", "ANONYMOUS_ID", function userFactory(fbutil, ANONYMOUS_ID) {
-            var userId = ANONYMOUS_ID,
-                path = {
-                    userIdentity: "users/" + userId + "/identity",
-                    userConfig: "users/" + userId + "/config",
-                    userVote: "users/" + userId + "/vote"
-                },
-                user = {
-                    id: userId,
-                    identity: fbutil.syncObject(path.userIdentity),
-                    config: fbutil.syncObject(path.userConfig),
-                    vote: fbutil.syncArray(path.userVote)
-                };
-
-            // voteSet: [{ "id": "all-around-cook", "points": 32 }, { "id": "cook-aces", "points": 16 }]
-            user.saveVote = function (voteSet) {
-
-                if (!voteSet || !angular.isArray(voteSet)) { throw new Error("invalid voteSet"); }
-                var data = createVoteData(voteSet);
-                return user.vote.$inst().$set(data);
-            };
-
-            user.hasVote = function () {
-                return user.vote.length > 0;
-            };
-
-            return user;
-        }])
-
-        .factory("user2", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", function user2Factory($FirebaseObject, $firebase, fbutil, FBURL) {
-
-            // Create user if it doesn't exist
-            function tryCreateUser (userId, userData) {
-                if(!userId) { throw new Error("userId is not valid");}
-                if(!userData) { throw new Error("userData is not valid");}
-
-                var $fb = fbutil.fb("users/" + userId);
-
-                return $fb.$transaction(function(currentData){
-                    if(currentData === null) {
-                        return userData;
-                    }
-                });
-            }
-
-            function parseUser (data) {
-                if(!angular.isObject(data) || !data) { return null; }
-                return {
-                    id: data.uid || "local:anonymous",
-                    provider: data.provider || "local",
-                    providerId: data.id || "local:anonymous",
-                    accessToken: data.accessToken || null,
-                    displayName: data.displayName || "Anonymous"
-                }
-            }
-
-            var UserFactory = $FirebaseObject.$extendFactory({
-                tryCreateUser: tryCreateUser
-            });
-
-            return function(userId) {
-                var ref = new Firebase(FBURL).child("users").child(userId);
-                var sync = $firebase(ref, {objectFactory: UserFactory });
-                return sync.$asObject();
-            }
         }])
 
         .factory("userProfile", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", function userProfileFactory($FirebaseObject, $firebase, fbutil, FBURL) {
@@ -274,15 +205,6 @@
                 };
             }
 
-            var UserFactory = $FirebaseObject.$extendFactory({
-
-            });
-
-            var UserProfileFactory = $FirebaseObject.$extendFactory({
-
-            });
-
-
             return {
 
                 /**
@@ -326,7 +248,7 @@
                  */
                 syncUser: function(userId) {
                     var ref = new Firebase(FBURL).child("users").child(userId);
-                    var sync = $firebase(ref, {objectFactory: UserFactory });
+                    var sync = $firebase(ref);
                     return sync.$asObject();
                 },
 
@@ -337,8 +259,19 @@
                  */
                 syncUserProfile: function(userId) {
                     var ref = new Firebase(FBURL).child("userProfiles").child(userId);
-                    var sync = $firebase(ref, {objectFactory: UserFactory });
+                    var sync = $firebase(ref);
                     return sync.$asObject();
+                },
+
+                /**
+                 * Create a synchronized array containing vote for a given user
+                 * @param userId
+                 * @returns {*}
+                 */
+                syncUserVote: function(userId) {
+                    var ref = new Firebase(FBURL).child("votes").child(userId);
+                    var sync = $firebase(ref);
+                    return sync.$asArray();
                 }
             };
         }])
@@ -349,38 +282,42 @@
         }])
 
         .factory("notifier", ["$window", function notifierFactory($window) {
+            $window.toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "positionClass": "toast-bottom-left",
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
             var notifier = {
-                success: function (message) {
+                success: function (message, title) {
                     if (!message) { return; }
-                    $window.toastr.success(message);
+                    $window.toastr.success(message, title);
                 },
-                info: function(message) {
+                info: function(message, title) {
                     if(!message) { return; }
-                    $window.toastr.info(message);
+                    $window.toastr.info(message, title);
                 },
-                warning: function(message) {
+                warning: function(message, title) {
                     if(!message) { return; }
-                    $window.toastr.warning(message);
+                    $window.toastr.warning(message, title);
                 },
-                error: function(message) {
+                error: function(message, title) {
                     if(!message) { return; }
-                    $window.toastr.error(message);
+                    $window.toastr.error(message, title);
                 }
 
             }
             return notifier;
         }])
-
-        .factory("formatter", function () {
-            return {
-                formatName: function (value) {
-                    if (!value) {
-                        return value;
-                    }
-                    return S(item.value[0].toLowerCase() + item.value.substr(1, item.value.length - 1)).latinise().dasherize().s;
-                }
-            };
-        })
     ;
 
     function FavoriteDictionary(maxItems) {

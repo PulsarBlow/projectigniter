@@ -11,6 +11,7 @@
         .config(["$stateProvider", "$urlRouterProvider", function($stateProvider, $urlRouterProvider) {
 
             $urlRouterProvider.when("", "/");
+            $urlRouterProvider.when("/vote", "/vote/edit");
             $urlRouterProvider.otherwise("/404");
             // Insensitive case handling
             $urlRouterProvider.rule(function ($injector, $location) {
@@ -26,7 +27,12 @@
                     url: "/signin",
                     templateUrl: "app/views/signin.html",
                     controller: "SigninController",
-                    authRequired: false
+                    authRequired: false,
+                    resolve: {
+                        userLoginInfo: function($log, $q, simpleLogin) {
+                            return simpleLogin.getUser();
+                        }
+                    }
                 })
 
                 .state("404", {
@@ -38,20 +44,53 @@
                 // Abstract state to resolve user before triggering state transition
                 .state("app", {
                     abstract: true,
-                    //authRequired: true, // This doesn't work. This property is not inherited by child states. Have to set it everywhere ...
+                    authRequired: true, // This doesn't work. This property is not inherited by child states. Have to set it everywhere ...
                     url:"",
+                    data: {
+                      authRequired: true
+                    },
                     templateUrl: "app/views/index.html",
                     controller : "AppController",
                     resolve: {
-                        requireUser: "requireUser",
                         userLoginInfo: function(requireUser) {
                             return requireUser();
+                        },
+                        dataSync: function($q, simpleLogin, userData) {
+                            var dfd = $q.defer(),
+                                promises = [],
+                                syncUser,
+                                syncUserProfile,
+                                syncUserVote ;
+
+                            simpleLogin.getUser().then(function(userLoginInfo) {
+                                if(!angular.isObject(userLoginInfo) || !userLoginInfo.uid) {
+                                    dfd.reject();
+                                    return;
+                                }
+                                syncUser = userData.syncUser(userLoginInfo.uid);
+                                syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
+                                syncUserVote = userData.syncUserVote(userLoginInfo.uid);
+                                $q.all([
+                                    userData.tryCreateUser(userLoginInfo),
+                                    userData.tryCreateUserProfile(userLoginInfo),
+                                    syncUser.$loaded(),
+                                    syncUserProfile.$loaded(),
+                                    syncUserVote.$loaded()
+                                ]).then(function() {
+                                    dfd.resolve({
+                                        user: syncUser,
+                                        userProfile: syncUserProfile,
+                                        userVote: syncUserVote
+                                    });
+                                })
+                            })
+                            return dfd.promise;
                         }
                     }
                 })
 
                 .state("app.home", {
-                    authRequired: true,
+                    //authRequired: true,
                     url: "/",
                     templateUrl: "app/views/pages/home.html",
                     controller: "HomeController"
@@ -129,5 +168,118 @@
                 })
 
         }])
+
+        .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, loginRedirectPath) {
+
+            $log.debug("app.routes:run", {
+                rootScope: $rootScope, state: $state, loginRedirectPath: loginRedirectPath
+            });
+
+            $rootScope.isAuthenticated = false;
+            $rootScope.returnUrl = "/";
+
+//            simpleLogin.watch(function(user){
+//
+//                $log.debug("simpleLogin:watch", {
+//                    user: user,
+//                    isAuthenticated:$rootScope.isAuthenticated,
+//                    currentState:$state.current,
+//                    currentStateUrl: $state.current.url,
+//                    currentStateAuthRequired: isAuthRequired($state.current)
+//                });
+//
+//                $rootScope.isAuthenticated = (angular.isObject(user) && user.uid) ? true : false;
+//
+//                $log.debug("simpleLogin:watch:isAuthenticated", {
+//                    user: user,
+//                    isAuthenticated:$rootScope.isAuthenticated
+//                });
+//
+//                if(!user && isAuthRequired($state.current)){
+//
+//                    $log.debug("simpleLogin:watch:redirecting", {
+//                        user: user,
+//                        currentState: $state.current
+//                    });
+//
+//                    $location.path(loginRedirectPath);
+//                }
+//            }, $rootScope);
+
+            $rootScope.$on("$firebaseSimpleLogin:login", function(event, userLoginInfo) {
+                $rootScope.isAuthenticated = (angular.isObject(userLoginInfo) && userLoginInfo.uid) ? true : false;
+                $log.debug("$firebaseSimpleLogin:login", {
+                    userLoginInfo: userLoginInfo,
+                    isAuthenticated:$rootScope.isAuthenticated,
+                    currentState:$state.current,
+                    currentStateUrl: $state.current.url,
+                    currentStateAuthRequired: isAuthRequired($state.current)
+                });
+
+                if($location.path() === loginRedirectPath) {
+                    redirectTo("/");
+                }
+            });
+
+            $rootScope.$on("$firebaseSimpleLogin:logout", function(event) {
+
+                $log.debug("$firebaseSimpleLogin:logout", {
+                    currentState:$state.current,
+                    currentStateUrl: $state.current.url,
+                    currentStateAuthRequired: isAuthRequired($state.current)
+                });
+
+                $rootScope.isAuthenticated = false;
+                redirectTo(loginRedirectPath);
+            });
+
+            $rootScope.$on("$firebaseSimpleLogin:error", function(event, error) {
+
+                $log.debug("$firebaseSimpleLogin:error", {
+                    currentState:$state.current,
+                    currentStateUrl: $state.current.url,
+                    currentStateAuthRequired: isAuthRequired($state.current)
+                });
+
+                $rootScope.isAuthenticated = false;
+                redirectTo(loginRedirectPath);
+            });
+
+            $rootScope.$on("$stateChangeStart", function(event, toState, toParams, fromState, fromParams) {
+
+                $log.debug("routes:$stateChangeStart", {
+                    fromState: fromState,
+                    fromStateUrl: fromState.url,
+                    toState: toState,
+                    toStateUrl: toState.url,
+                    isAuthenticated: $rootScope.isAuthenticated,
+                    isAuthRequired: isAuthRequired(toState)
+                });
+
+                // state requires auth but user not authed
+                if(isAuthRequired(toState) && !$rootScope.isAuthenticated) {
+
+                    $log.debug("routes:$stateChangeStart - Need authentication", {
+                        isAuthenticated: $rootScope.isAuthenticated,
+                        authRequired: isAuthRequired(toState)
+                    });
+
+                    //event.preventDefault();
+                    redirectTo(loginRedirectPath);
+                }
+            });
+
+            function isAuthRequired(state) {
+                return state && state.data && state.data.authRequired;
+            }
+            function redirectTo(path) {
+
+                $log.debug("routes:redirect to %s", path);
+
+                $location.replace();
+                $location.path(path);
+            }
+        }])
+
         ;
 }(angular = window.angular || {});

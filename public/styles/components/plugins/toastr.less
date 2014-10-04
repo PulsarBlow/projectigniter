@@ -1,3 +1,6 @@
+@import "../../_variables";
+@import (reference) "../../_mixins";
+
 // Toastr overrides
 // Mix-ins
 .wordWrap(@wordWrap: break-word) {
@@ -11,10 +14,10 @@
 @light-grey: #CCCCCC;
 @white: #FFFFFF;
 @near-black: #030303;
-@green: #51A351;
-@red: #BD362F;
-@blue: #2F96B4;
-@orange: #F89406;
+@green: @brand-success;
+@red: @brand-danger;
+@blue: @brand-primary;
+@orange: @brand-warning;
 
 // Styles
 .toast-title {
@@ -113,19 +116,19 @@ button.toast-close-button {
 
   > div {
     margin: 0 0 6px;
-    padding: 15px 15px 15px 50px;
+    padding: 5px 5px 5px 50px;
     width: 300px;
-    .lh-border-radius(3px 3px 3px 3px);
+    //.lh-border-radius(3px 3px 3px 3px);
     background-position: 15px center;
     background-repeat: no-repeat;
-    .lh-box-shadow(0 0 12px @grey);
+    .lh-box-shadow(0 0 2px @grey);
     color: @white;
-    .opacity(0.8);
+    //.opacity(0.8);
   }
 
   > :hover {
-    .lh-box-shadow(0 0 12px @black);
-    .opacity(1);
+    //.lh-box-shadow(0 0 12px @black);
+    //.opacity(1);
     cursor: pointer;
   }
 
