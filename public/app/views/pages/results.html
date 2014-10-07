@@ -1,9 +1,57 @@
-<div class="page">
+<div class="page page-results">
 
     <section class="panel panel-default">
         <div class="panel-heading"><strong><span class="fa fa-line-chart"></span> Résultats</strong></div>
         <div class="panel-body">
-            <p>Résultat des votes</p>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="list-group vote-results">
+                            <div class="list-group-item" data-ng-repeat="item in voteResult.allVotes">
+                                <div class="list-group-item-heading">
+                                    <div class="item-rank">#{{$index + 1}}</div>
+                                    <div class="item-value">{{item.value}}</div>
+                                </div>
+
+                                <div class="list-group-item-footer">
+                                    <div class="item-points">
+                                        {{item.points}} points
+                                    </div>
+                                    <div class="voters">
+                                        <a class="voter" data-ng-repeat="voter in item.voters"
+                                           data-ng-href="{{voter.pageUrl}}" target="_blank"
+                                           tooltip="{{voter.displayName}} - {{voter.points}} pts"
+                                           tooltip-placement="right"><img data-ng-src="{{voter.pictureUrl}}"
+                                                                          class="img-circle img20_20"
+                                                                          alt="{{voter.displayName}}"/></a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="callout callout-info">
+                            <h4>Résultats du vote</h4>
+
+                            <p>Le résultat du vote pour le nom est affiché ci-dessous. Ce résultat en mise à jour en temps réel durant toute la durée du vote.<br/>Les noms sont classés par popularité décroissante (nombre de points attribués). Si deux noms obtiennent le même nombre de points, le nom ayant été choisi par le plus de participant prendra la première position.
+                            </p>
+                        </div>
+                        <h5>Les participants</h5>
+
+                        <div class="voters">
+                            <a class="voter" data-ng-repeat="voter in voteResult.allVoters"
+                               data-ng-href="{{voter.pageUrl}}" target="_blank"><img data-ng-src="{{voter.pictureUrl}}"
+                                                                                     class="img-circle img30_30"
+                                                                                     alt="{{voter.displayName}}"
+                                                                                     title="{{voter.displayName}}"/>
+                                {{voter.displayName}}</a>
+                        </div>
+
+                        <h5>Les chiffres croustillants</h5>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 

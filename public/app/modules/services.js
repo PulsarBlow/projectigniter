@@ -8,24 +8,35 @@
             return fbutil.syncArray("names");
         }])
 
+        .factory("appData", ["fbutil", function appDataFactory(fbutil) {
+            return fbutil.syncObject("app");
+        }])
+
         .factory("votes", ["$q", "fbutil", function votesFactory($q, fbutil) {
 
-            function createVoteData(voteSet) {
-                if(!voteSet || !angular.isArray(voteSet)) { throw new Error("voteSet is not valid"); }
+
+            function createVoteData(user, userProfile, voteSet) {
+                if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("Invalid arguments"); }
                 // Order voteSet by descending points value
                 voteSet.sort(function (item1, item2) {
                     return item2.points - item1.points;
                 });
-                var data = { };
+                var data = {
+                    userInfo: {
+                        displayName: user.displayName || "Anonymous",
+                        pageUrl: userProfile.page_url || null,
+                        pictureUrl: userProfile.picture_url || null
+                    },
+                    voteItems: []
+                };
                 voteSet.forEach(function (item, index) {
-                    // padded key : 001, 002 etc.
-                    data[S(item.id).padLeft(3, "0").s] = item;
+                    data.voteItems[item.id] = item;
                 });
                 return data;
             }
 
             var syncUserVote = function(userId) {
-                return fbutil.syncArray("votes/" + userId);
+                return fbutil.syncObject("votes/" + userId);
             };
 
             return {
@@ -33,12 +44,12 @@
                     return fbutil.syncArray("votes");
                 },
                 syncUserVote: syncUserVote,
-                saveVote: function(userId, voteSet) {
-                    if(!userId || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
+                saveVote: function(user, userProfile, voteSet) {
+                    if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
 
                     var fb = fbutil.fb("votes"),
-                        data = createVoteData(voteSet);
-                    return fb.$set(userId, data);
+                        data = createVoteData(user, userProfile, voteSet);
+                    return fb.$set(user.id, data);
                 },
                 deleteVote: function(userId) {
                     if(!userId) { throw new Error("Invalid userId"); }
@@ -242,6 +253,25 @@
                 },
 
                 /**
+                 * Create userConfig data record if it doesn't exist in firebase
+                 * @param userLoginInfo
+                 * @returns {Promise} A deferred promise
+                 */
+                tryCreateUserConfig: function (userLoginInfo) {
+                    guardUserLoginInfo(userLoginInfo);
+
+                    var $fb = fbutil.fb("userConfigs/" + userLoginInfo.uid);
+
+                    return $fb.$transaction(function(currentData){
+                        if(currentData === null) {
+                            return {
+                                navCollapsed: false
+                            };
+                        }
+                    });
+                },
+
+                /**
                  * Create a synchronized user
                  * @param userId
                  * @returns {*}
@@ -272,6 +302,17 @@
                     var ref = new Firebase(FBURL).child("votes").child(userId);
                     var sync = $firebase(ref);
                     return sync.$asArray();
+                },
+
+                /**
+                 * Create a synchronized user config
+                 * @param userId
+                 * @returns {*}
+                 */
+                syncUserConfig: function(userId) {
+                    var ref = new Firebase(FBURL).child("userConfigs").child(userId);
+                    var sync = $firebase(ref);
+                    return sync.$asObject();
                 }
             };
         }])

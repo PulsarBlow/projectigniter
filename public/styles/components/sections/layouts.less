@@ -25,7 +25,7 @@ html {
     position: static; //
     min-height: 100%; // important!
 
-    > .header-container {
+    .header-container {
         &.header-fixed {
             position: fixed;
             right: 0;
@@ -44,7 +44,7 @@ html {
         .top-header {}
     }
 
-    > .main-container {
+    .main-container {
         position: static;   // important! make sure &:before position based on html
         &:before { // content container background for boxed layout
             content: " ";
@@ -117,7 +117,7 @@ html {
 // layout for horizontal nav
 @media (min-width: @screen-sm) {
     .app {
-        > .main-container {
+        .main-container {
             > .nav-container {
                 &.nav-horizontal {
                     z-index: 9; // less then header, for dropdowns

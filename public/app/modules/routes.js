@@ -27,9 +27,8 @@
                     url: "/signin",
                     templateUrl: "app/views/signin.html",
                     controller: "SigninController",
-                    authRequired: false,
                     resolve: {
-                        userLoginInfo: function($log, $q, simpleLogin) {
+                        userLoginInfo: function($log, $q, $rootScope, simpleLogin) {
                             return simpleLogin.getUser();
                         }
                     }
@@ -37,14 +36,12 @@
 
                 .state("404", {
                     url: "/404",
-                    templateUrl: "app/views/404.html",
-                    authRequired: false
+                    templateUrl: "app/views/404.html"
                 })
 
                 // Abstract state to resolve user before triggering state transition
                 .state("app", {
                     abstract: true,
-                    authRequired: true, // This doesn't work. This property is not inherited by child states. Have to set it everywhere ...
                     url:"",
                     data: {
                       authRequired: true
@@ -55,32 +52,40 @@
                         userLoginInfo: function(requireUser) {
                             return requireUser();
                         },
-                        dataSync: function($q, simpleLogin, userData) {
+                        dataSync: function($q, simpleLogin, appData, userData) {
                             var dfd = $q.defer(),
                                 promises = [],
+                                syncApp,
                                 syncUser,
                                 syncUserProfile,
-                                syncUserVote ;
+                                syncUserVote,
+                                syncUserConfig;
 
                             simpleLogin.getUser().then(function(userLoginInfo) {
                                 if(!angular.isObject(userLoginInfo) || !userLoginInfo.uid) {
                                     dfd.reject();
                                     return;
                                 }
+                                syncApp = appData;
                                 syncUser = userData.syncUser(userLoginInfo.uid);
                                 syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
                                 syncUserVote = userData.syncUserVote(userLoginInfo.uid);
+                                syncUserConfig = userData.syncUserConfig(userLoginInfo.uid);
                                 $q.all([
+                                    syncApp.$loaded(),
                                     userData.tryCreateUser(userLoginInfo),
                                     userData.tryCreateUserProfile(userLoginInfo),
+                                    userData.tryCreateUserConfig(userLoginInfo),
                                     syncUser.$loaded(),
                                     syncUserProfile.$loaded(),
                                     syncUserVote.$loaded()
                                 ]).then(function() {
                                     dfd.resolve({
+                                        app: syncApp,
                                         user: syncUser,
                                         userProfile: syncUserProfile,
-                                        userVote: syncUserVote
+                                        userVote: syncUserVote,
+                                        userConfig: syncUserConfig
                                     });
                                 })
                             })
@@ -90,20 +95,17 @@
                 })
 
                 .state("app.home", {
-                    //authRequired: true,
                     url: "/",
                     templateUrl: "app/views/pages/home.html",
                     controller: "HomeController"
                 })
 
                 .state ("app.concept", {
-                    authRequired: true,
                     url: "/concept",
                     templateUrl: "app/views/pages/concept.html"
                 })
 
                 .state("app.vote", {
-                    authRequired: true,
                     url: "/vote",
                     templateUrl: "app/views/pages/vote.html",
                     controller: "VoteController",
@@ -116,53 +118,46 @@
                 })
 
                 .state("app.vote.create", {
-                    authRequired: true,
                     url: "/create",
                     templateUrl: "app/views/pages/vote/create.html"
                 })
 
                 .state("app.vote.create.step0", {
-                    authRequired: true,
                     url: "/about",
                     templateUrl: "app/views/pages/vote/create.step0.html"
                 })
 
                 .state("app.vote.create.step1", {
-                    authRequired: true,
                     url: "/select",
                     templateUrl: "app/views/pages/vote/create.step1.html",
                     controller: "VoteSelectionController"
                 })
 
                 .state("app.vote.create.step2", {
-                    authRequired: true,
                     url: "/points",
                     templateUrl: "app/views/pages/vote/create.step2.html",
                     controller: "VoteSortingController"
                 })
 
                 .state("app.vote.create.step3", {
-                    authRequired: true,
                     url: "/cast",
                     templateUrl: "app/views/pages/vote/create.step3.html",
                     controller: "VoteCastController"
                 })
 
                 .state("app.vote.edit", {
-                    authRequired: true,
                     url: "/edit",
                     templateUrl: "app/views/pages/vote/edit.html",
                     controller: "VoteEditController"
                 })
 
                 .state("app.results", {
-                    authRequired: true,
                     url: "/results",
-                    templateUrl: "app/views/pages/results.html"
+                    templateUrl: "app/views/pages/results.html",
+                    controller: "ResultsController"
                 })
 
                 .state("app.account", {
-                    authRequired: true,
                     url: "/account",
                     templateUrl: "app/views/pages/account.html"
                 })
@@ -171,53 +166,55 @@
 
         .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, loginRedirectPath) {
 
+            var isAuthenticated = false, homeUrl = "/", returnUrl = null;
+
             $log.debug("app.routes:run", {
-                rootScope: $rootScope, state: $state, loginRedirectPath: loginRedirectPath
+                rootScope: $rootScope,
+                state: $state,
+                loginRedirectPath: loginRedirectPath
             });
 
-            $rootScope.isAuthenticated = false;
-            $rootScope.returnUrl = "/";
+            $rootScope.$on("$stateChangeStart", function(event, toState, toParams, fromState, fromParams) {
 
-//            simpleLogin.watch(function(user){
-//
-//                $log.debug("simpleLogin:watch", {
-//                    user: user,
-//                    isAuthenticated:$rootScope.isAuthenticated,
-//                    currentState:$state.current,
-//                    currentStateUrl: $state.current.url,
-//                    currentStateAuthRequired: isAuthRequired($state.current)
-//                });
-//
-//                $rootScope.isAuthenticated = (angular.isObject(user) && user.uid) ? true : false;
-//
-//                $log.debug("simpleLogin:watch:isAuthenticated", {
-//                    user: user,
-//                    isAuthenticated:$rootScope.isAuthenticated
-//                });
-//
-//                if(!user && isAuthRequired($state.current)){
-//
-//                    $log.debug("simpleLogin:watch:redirecting", {
-//                        user: user,
-//                        currentState: $state.current
-//                    });
-//
-//                    $location.path(loginRedirectPath);
-//                }
-//            }, $rootScope);
+                $log.debug("routes:$stateChangeStart", {
+                    fromState: fromState,
+                    fromStateUrl: fromState.url,
+                    toState: toState,
+                    toStateUrl: toState.url,
+                    isAuthenticated: isAuthenticated,
+                    isAuthRequired: isAuthRequired(toState)
+                });
+
+                // state requires auth but user not authed
+                if(isAuthRequired(toState) && !isAuthenticated) {
+
+                    $log.debug("routes:$stateChangeStart - Need authentication", {
+                        isAuthenticated: isAuthenticated,
+                        authRequired: isAuthRequired(toState)
+                    });
+
+                    //event.preventDefault();
+                    redirectTo(loginRedirectPath);
+                }
+            });
 
             $rootScope.$on("$firebaseSimpleLogin:login", function(event, userLoginInfo) {
-                $rootScope.isAuthenticated = (angular.isObject(userLoginInfo) && userLoginInfo.uid) ? true : false;
+
+                isAuthenticated = (angular.isObject(userLoginInfo) && userLoginInfo.uid) ? true : false;
+
                 $log.debug("$firebaseSimpleLogin:login", {
                     userLoginInfo: userLoginInfo,
-                    isAuthenticated:$rootScope.isAuthenticated,
+                    isAuthenticated: isAuthenticated,
                     currentState:$state.current,
                     currentStateUrl: $state.current.url,
                     currentStateAuthRequired: isAuthRequired($state.current)
                 });
 
-                if($location.path() === loginRedirectPath) {
-                    redirectTo("/");
+                if(returnUrl) {
+                    redirectTo(returnUrl);
+                    returnUrl = null;
+                } else if ($location.path() === loginRedirectPath) {
+                    redirectTo(homeUrl);
                 }
             });
 
@@ -229,7 +226,7 @@
                     currentStateAuthRequired: isAuthRequired($state.current)
                 });
 
-                $rootScope.isAuthenticated = false;
+                isAuthenticated = false;
                 redirectTo(loginRedirectPath);
             });
 
@@ -241,37 +238,14 @@
                     currentStateAuthRequired: isAuthRequired($state.current)
                 });
 
-                $rootScope.isAuthenticated = false;
+                isAuthenticated = false;
                 redirectTo(loginRedirectPath);
             });
 
-            $rootScope.$on("$stateChangeStart", function(event, toState, toParams, fromState, fromParams) {
-
-                $log.debug("routes:$stateChangeStart", {
-                    fromState: fromState,
-                    fromStateUrl: fromState.url,
-                    toState: toState,
-                    toStateUrl: toState.url,
-                    isAuthenticated: $rootScope.isAuthenticated,
-                    isAuthRequired: isAuthRequired(toState)
-                });
-
-                // state requires auth but user not authed
-                if(isAuthRequired(toState) && !$rootScope.isAuthenticated) {
-
-                    $log.debug("routes:$stateChangeStart - Need authentication", {
-                        isAuthenticated: $rootScope.isAuthenticated,
-                        authRequired: isAuthRequired(toState)
-                    });
-
-                    //event.preventDefault();
-                    redirectTo(loginRedirectPath);
-                }
-            });
-
             function isAuthRequired(state) {
-                return state && state.data && state.data.authRequired;
+                return state && state.data && state.data.authRequired ? true : false;
             }
+
             function redirectTo(path) {
 
                 $log.debug("routes:redirect to %s", path);

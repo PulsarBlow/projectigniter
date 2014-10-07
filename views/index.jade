@@ -18,11 +18,13 @@ html(lang="fr")
     body
         section(
             id="app",
-            class="app nav-collapsed-min"
+            class="app"
             data-ng-app="app"
             data-reactive-layout,
             data-off-canvas-nav
-            data-ui-view)
+            data-ui-view,
+            data-ng-class="{'nav-collapsed-min': userConfig.navCollapsed}"
+        )
             div.apploader-container
                 div.apploader
                     div.square
@@ -41,18 +43,18 @@ html(lang="fr")
         script(src="/bower_components/angular-route/angular-route.min.js")
         script(src="/bower_components/angular-animate/angular-animate.min.js")
         script(src="/bower_components/angular-ui-router/release/angular-ui-router.min.js")
+        script(src="/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js")
         script(src="/bower_components/angular-ui-sortable/sortable.min.js")
         script(src="/bower_components/firebase/firebase.js")
         script(src="/bower_components/firebase-simple-login/firebase-simple-login.js")
         script(src="/bower_components/angularfire/dist/angularfire.min.js")
-        script(src="/bower_components/bootstrap/dist/js/bootstrap.min.js")
         script(src="/bower_components/stringjs/lib/string.min.js")
+        script(src="/bower_components/moment/min/moment-with-locales.min.js")
         script(src="/bower_components/toastr/toastr.min.js")
 
         script(src="/app/app.js")
         script(src="/app/modules/config.js")
         script(src="/app/modules/routes.js")
-        //script(src="/app/modules/routes.security.js")
         script(src="/app/modules/controllers.js")
         script(src="/app/modules/services.js")
         script(src="/app/modules/directives.js")
