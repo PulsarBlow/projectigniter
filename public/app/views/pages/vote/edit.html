@@ -1,3 +1,7 @@
+<div class="callout callout-info">
+    <h4>Vote enregistré</h4>
+    <p>Ceci est le vote que vous avez enregistré. Vous pouvez le supprimer pour en enregistrer un nouveau.</p>
+</div>
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-6">
@@ -20,13 +24,17 @@
 
         </div>
         <div class="col-md-6">
-            <div class="callout callout-info">
-                <h4>Vote enregistré</h4>
-                <p>Ceci est le vote que vous avez enregistré. Vous pouvez le supprimer pour en enregistrer un nouveau.</p>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="btn-group">
+                        <a class="btn btn-danger" data-ng-click="deleteVote()">Effacer mon vote</a>
+                    </div>
+                </div>
+                <div class="panel-footer clearfix">
+                    <div class="pull-right">Vote enregistré {{getMoment()}}</div>
+                </div>
             </div>
-            <div class="" style="margin-bottom: 2em;">
-                <a class="btn btn-lg btn-danger btn-lg" data-ng-click="deleteVote()">Effacer mon vote</a>
-            </div>
+
         </div>
     </div>
 </div>

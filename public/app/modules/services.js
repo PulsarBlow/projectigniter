@@ -12,7 +12,22 @@
             return fbutil.syncObject("app");
         }])
 
-        .factory("votes", ["$q", "fbutil", function votesFactory($q, fbutil) {
+        .factory("appCounters", ["fbutil", function appCountersFactory(fbutil){
+            var sync = fbutil.syncObject("counters");
+            return {
+                sync: sync,
+                addVotesDeleted: function() {
+                    sync.votes_deleted++;
+                    sync.$save();
+                },
+                addVotesSaved: function() {
+                    sync.votes_saved++;
+                    sync.$save();
+                }
+            };
+        }])
+
+        .factory("votes", ["$q", "fbutil", "appCounters", function votesFactory($q, fbutil, appCounters) {
 
 
             function createVoteData(user, userProfile, voteSet) {
@@ -27,6 +42,7 @@
                         pageUrl: userProfile.page_url || null,
                         pictureUrl: userProfile.picture_url || null
                     },
+                    date: +moment().utc(),
                     voteItems: []
                 };
                 voteSet.forEach(function (item, index) {
@@ -49,13 +65,17 @@
 
                     var fb = fbutil.fb("votes"),
                         data = createVoteData(user, userProfile, voteSet);
-                    return fb.$set(user.id, data);
+                    return fb.$set(user.id, data).then(function() {
+                        appCounters.addVotesSaved();
+                    });
                 },
                 deleteVote: function(userId) {
                     if(!userId) { throw new Error("Invalid userId"); }
 
                     var fb = fbutil.fb("votes");
-                    return fb.$remove(userId);
+                    return fb.$remove(userId).then(function() {
+                        appCounters.addVotesDeleted();
+                    });
                 }
             };
         }])
@@ -265,7 +285,8 @@
                     return $fb.$transaction(function(currentData){
                         if(currentData === null) {
                             return {
-                                navCollapsed: false
+                                navCollapsed: false,
+                                emailOnVoteEnd: false
                             };
                         }
                     });
@@ -294,17 +315,6 @@
                 },
 
                 /**
-                 * Create a synchronized array containing vote for a given user
-                 * @param userId
-                 * @returns {*}
-                 */
-                syncUserVote: function(userId) {
-                    var ref = new Firebase(FBURL).child("votes").child(userId);
-                    var sync = $firebase(ref);
-                    return sync.$asArray();
-                },
-
-                /**
                  * Create a synchronized user config
                  * @param userId
                  * @returns {*}
@@ -313,6 +323,17 @@
                     var ref = new Firebase(FBURL).child("userConfigs").child(userId);
                     var sync = $firebase(ref);
                     return sync.$asObject();
+                },
+
+                /**
+                 * Create a synchronized array containing vote for a given user
+                 * @param userId
+                 * @returns {*}
+                 */
+                syncUserVote: function(userId) {
+                    var ref = new Firebase(FBURL).child("votes").child(userId);
+                    var sync = $firebase(ref);
+                    return sync.$asArray();
                 }
             };
         }])

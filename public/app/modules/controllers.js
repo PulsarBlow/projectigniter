@@ -30,11 +30,6 @@
 
             $log.debug("AppController instantiated", {dataSync: dataSync, userLoginInfo: userLoginInfo});
 
-            //userData.tryCreateUser(userLoginInfo);
-            //userData.tryCreateUserProfile(userLoginInfo);
-
-            //var syncUser = userData.syncUser(userLoginInfo.uid);
-            //syncUser.$bindTo($scope, "user");
             dataSync.app.$bindTo($scope, "app");
             dataSync.user.$bindTo($scope, "user");
             dataSync.userProfile.$bindTo($scope, "userProfile");
@@ -42,22 +37,10 @@
 
             // Bind to nav toggle event
             $rootScope.$on("nav:stateChanged", function(event, args) {
-                //$scope.userConfig.ui.navCollapsed = args.navCollapsed;
-                $scope.userConfig.navCollapsed = args.collapsed;
-                dataSync.userConfig.navCollapsed = $scope.userConfig.navCollapsed;
+                dataSync.userConfig.navCollapsed = args.collapsed;
                 dataSync.userConfig.$save();
-                console.log("collapsed", $scope.userConfig.navCollapsed);
-                //userConfig.navCollapsed = args.collapsed;
-                //$scope.userConfig = userConfig;
-                //dataSync.userConfig.$save();
-                //dataSync.userConfig.navCollapsed = args.collapsed;
-                //dataSync.userConfig.$save();
-            })
+            });
 
-            //var syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
-            //syncUserProfile.$bindTo($scope, "userProfile");
-
-                //$scope.navCollapsed = dataSync.userConfig.navCollapsed;
             $scope.signout = function() {
                 simpleLogin.logout();
             };
@@ -143,7 +126,7 @@
 
                 votes.saveVote($scope.user, $scope.userProfile, voteSet).then(function(){
                     userFavorites.$clear();
-                    notifier.success("<strong>Vote enregistré!</strong><br />Merci de votre participation.")
+                    notifier.success("<strong>Vote enregistré!</strong><br />Merci de votre participation.");
                     $state.go("app.results");
                 }, function() {
                     notifier.error("Echec de l'enregistrement du vote. Veuillez réessayer.");
@@ -167,9 +150,13 @@
                 notifier.success("<strong>Vote supprimé!</strong><br />Vous pouvez revoter.")
                 $state.go("app.vote.create.step1");
             }
+
+            $scope.getMoment = function() {
+                return moment(userVote.date).fromNow();
+            }
         }])
 
-        .controller("ResultsController", ["$log", "$scope", "votes", "notifier", function ($log, $scope, votes, notifier) {
+        .controller("ResultsController", ["$log", "$scope", "votes", "notifier", "userData", "appCounters", function ($log, $scope, votes, notifier, userData, appCounters) {
             $log.debug("ResultsController instantiated");
 
             var syncVotes = votes.syncVotes(), totalPoints = 0, shouldNotify = false;
@@ -183,6 +170,14 @@
                 return Math.round(points * 100 / $scope.voteResult.totalPoints);
             };
 
+            $scope.optinFeedback = function() {
+                if($scope.userConfig.emailOnVoteEnd) {
+                    notifier.success("Vous recevrez l'email récapitulatif du résultat du vote.", "Inscription enregistrée");
+                } else {
+                    notifier.info("Vous ne recevrez pas d'email.", "Désinscription enregistrée");
+                }
+            }
+            appCounters.sync.$bindTo($scope, "appCounters");
             function buildVoteResult(votes) {
 
                 if(!angular.isArray(votes) || !votes.length) {

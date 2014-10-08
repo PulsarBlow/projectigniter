@@ -10,15 +10,17 @@
         "app.filters",
         "app.services",
         "ui.sortable",
-        "ui.bootstrap"
+        "ui.bootstrap",
+        "timer"
     ])
 
     // Disable debug traces
     .config(['$compileProvider', function ($compileProvider) {
         $compileProvider.debugInfoEnabled(true);
     }])
-    .run(["$log", "$rootScope", "simpleLogin", function($log, $rootScope, simpleLogin) {
+    .run(["$log", "$rootScope", "$window", "simpleLogin", function($log, $rootScope, $window, simpleLogin) {
         $log.debug('Running app'); //debug
+        $window.moment.locale("fr");
     }]);
 
 }(angular = window.angular || {});
