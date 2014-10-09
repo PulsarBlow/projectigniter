@@ -8,17 +8,6 @@
 
                 $log.debug("SigninController instantiated", {userLoginInfo: userLoginInfo});
 
-                if(angular.isObject(userLoginInfo) && userLoginInfo.uid) {
-
-                    $log.debug("SigninController:authCheck", {
-                        userLoginInfo: userLoginInfo,
-                        uid: userLoginInfo.uid
-                    });
-
-                    $location.replace();
-                    $location.path("/");
-                }
-
                 $scope.signin = function (provider) {
                     simpleLogin.login(provider);
                 };
@@ -80,6 +69,40 @@
             $scope.hasVote = function() {
               return $scope.userVote && $scope.userVote.voteItems;
             };
+        }])
+
+        .controller("VotesController", ["$log", "$scope", "$state", "voteService", function ($log, $scope, $state, voteService) {
+
+            $log.debug("VotesController instantiated");
+
+            $scope.votes = voteService.sync.votes;
+
+            $scope.getStatus = function(vote) {
+                var status = { value: "locked", label:"Bientôt" };
+                if(!angular.isObject(vote)) {
+                    return status;
+                }
+                if(vote.isLocked) {
+
+                }
+                else if(isOpened(vote)) {
+                    status.value = "opened";
+                    status.label = "En cours";
+                }
+                else {
+                    status.value = "closed";
+                    status.label = "Terminé";
+                }
+                return status;
+            };
+
+            function isOpened(vote) {
+                var now = moment(),
+                    start = vote.dateStart ? moment(vote.dateStart) : moment(0),
+                    end = vote.dateEnd ? moment(vote.dateEnd) : moment("2020-01-01");
+                return now.isAfter(start, "min") && now.isBefore(end, "min");
+            }
+
         }])
 
         .controller("VoteSelectionController", ["$log", "$scope", "names", "userFavorites",

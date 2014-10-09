@@ -1,0 +1,41 @@
+<div class="page page-vote">
+    <section class="panel panel-default">
+        <div class="panel-heading">
+            <strong><span class="fa fa-archive"></span> Vote</strong>
+        </div>
+        <div class="panel-body">
+            <div class="callout callout-info">
+                <h4>Votes</h4>
+                <p>Ce page affiche la liste des votes en cours ou archivés.</p>
+            </div>
+
+            <div class="vote-list animate-repeat-fade" data-ng-repeat="vote in votes">
+                <div class="vote-list-item ui-ribbon-container {{getStatus(vote).value}}">
+                    <div class="ui-ribbon-wrapper">
+                        <div class="ui-ribbon">
+                            {{getStatus(vote).label}}
+                        </div>
+                    </div>
+
+                    <div class="item-media">
+                        <i class="fa fa-{{vote.icon}} "></i>
+                    </div>
+                    <div class="item-body">
+                        <div class="item-heading">{{vote.title}}</div>
+                        <div class="item-description">{{vote.description}}</div>
+                        <div class="item-footer">
+                            <div class="timer-wrapper" data-ng-if="getStatus(vote).value==='opened'">Prend fin dans :
+                                <timer end-time="vote.dateEnd">{{days}} jours, {{hours}} heures, {{minutes}} minutes et {{seconds}} secondes.</timer>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</div>

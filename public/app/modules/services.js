@@ -51,18 +51,18 @@
             }
 
             var syncUserVote = function(userId) {
-                return fbutil.syncObject("votes/" + userId);
+                return fbutil.syncObject("userVotes/" + userId);
             };
 
             return {
                 syncVotes: function() {
-                    return fbutil.syncArray("votes");
+                    return fbutil.syncArray("userVotes");
                 },
                 syncUserVote: syncUserVote,
                 saveVote: function(user, userProfile, voteSet) {
                     if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("Invalid argument"); }
 
-                    var fb = fbutil.fb("votes"),
+                    var fb = fbutil.fb("userVotes"),
                         data = createVoteData(user, userProfile, voteSet);
                     return fb.$set(user.id, data).then(function() {
                         appCounters.addVotesSaved();
@@ -72,90 +72,12 @@
                 deleteVote: function(user, userProfile) {
                     if(!user || !userProfile) { throw new Error("Invalid arguments"); }
 
-                    var fb = fbutil.fb("votes");
+                    var fb = fbutil.fb("userVotes");
                     return fb.$remove(user.id).then(function() {
                         appCounters.addVotesDeleted();
                         activityService.publish("userVoteDeleted", user, userProfile);
                     });
                 }
-            };
-        }])
-
-        .factory("userProfile", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", function userProfileFactory($FirebaseObject, $firebase, fbutil, FBURL) {
-
-            var UserProfileFactory = $FirebaseObject.$extendFactory({
-                // Create user profile if it doesn't exist
-                tryCreateUserProfile: function(userId, userProfileData) {
-                    if(!userId) { throw new Error("userId is not valid");}
-                    if(!userProfileData) { throw new Error("userData is not valid");}
-
-                    var $fb = fbutil.fb("userProfiles/" + userId);
-
-                    return $fb.$transaction(function(currentData){
-                        if(currentData === null) {
-                            return userProfileData;
-                        }
-                    });
-                },
-                parseUserProfile: function(data) {
-
-                    if(!angular.isObject(data) ||
-                        !data ||
-                        !angular.isObject(data.thirdPartyUserData) ||
-                        !data.thirdPartyUserData) {
-                        return null;
-                    }
-                    return parseProviderData(data.provider, data.thirdPartyUserData);
-
-                    function parseProviderData(provider, providerUserData) {
-                        if(!angular.isString(provider) || !provider) { throw new Error("Invalid provider"); }
-                        if(!angular.isObject(providerUserData)) { throw new Error("Invalid providerUserData"); }
-
-                        switch (angular.lowercase(provider)) {
-                            case "facebook":
-                                return parseFacebookData(providerUserData);
-                            case "google":
-                                return parseGoogleData(providerUserData);
-                            default:
-                                throw new Error("Unable to parse user. Provider ["+ provider + "] is not supported");
-                        }
-                    }
-                    function parseFacebookData(data) {
-                        if(!data) { return {}; }
-                        return {
-                            email: data.email || null,
-                            email_verified: false,
-                            realName: data.name || null,
-                            gender: data.gender || null,
-                            page_url: data.link || null,
-                            picture_url: parsePictureUrl(data.picture),
-                            locale: data.locale || "fr_FR"
-                        };
-
-                        function parsePictureUrl(pictureObj) {
-                            if(!angular.isObject(pictureObj) || !pictureObj || !pictureObj.data) { return null; }
-                            return pictureObj.data.url;
-                        }
-                    }
-                    function parseGoogleData(data) {
-                        if(!data) { return {}; }
-                        return {
-                            email: data.email || null,
-                            email_verified: data.verified_email || false,
-                            realName: data.name || null,
-                            gender: data.gender || null,
-                            page_url: data.link || null,
-                            picture_url: data.picture || null,
-                            locale: data.locale || "fr_FR"
-                        };
-                    }
-                }
-            });
-
-            return function(userId) {
-                var ref = new Firebase(FBURL).child("userProfiles").child(userId);
-                var sync = $firebase(ref, {objectFactory: UserProfileFactory });
-                return sync.$asObject();
             };
         }])
 
@@ -264,7 +186,6 @@
                             return parseUser(userLoginInfo);
                         }
                     }).then(function(result){
-                        $log.debug("tryCreateUser - %s", result === null ? "aborted":"updated");
                         if(angular.isObject(result)) {
                             activityService.publish("usersignedup", user, userProfile);
                         }
@@ -347,7 +268,7 @@
                  * @returns {*}
                  */
                 syncUserVote: function(userId) {
-                    var ref = new Firebase(FBURL).child("votes").child(userId);
+                    var ref = new Firebase(FBURL).child("userVotes").child(userId);
                     var sync = $firebase(ref);
                     return sync.$asArray();
                 }
@@ -357,6 +278,22 @@
         .factory("userFavorites", ["MAX_FAVORITES", function userFavoritesFactory(MAX_FAVORITES) {
             var userFavorites = new FavoriteDictionary(MAX_FAVORITES);
             return userFavorites;
+        }])
+
+        .factory("counterService", ["fbutil", function (fbutil){
+            var sync = fbutil.syncObject("counters");
+            return {
+                sync: sync,
+
+                addSavedVote: function() {
+                    sync.votes_saved++;
+                    sync.$save();
+                },
+                addDeletedVote: function() {
+                    sync.votes_deleted++;
+                    sync.$save();
+                }
+            };
         }])
 
         .factory("activityService", ["$q", "$log", "$rootScope", "fbutil", "ACTIVITY_LIMIT", function activitiesFactory($q, $log, $rootScope, fbutil, ACTIVITY_LIMIT) {
@@ -487,6 +424,90 @@
                     activityRef.set({displayName: user.displayName, pictureUrl: userProfile.pictureUrl });
                 }
             };
+        }])
+
+        .factory("voteService", ["fbutil", "counterService", "activityService", function voteServiceFactory(fbutil, counters, activities){
+            return {
+
+                sync: {
+                    votes: fbutil.syncArray("votes"),
+                    userVotes: fbutil.syncArray("userVotes")
+                },
+
+                userVote: {
+                    save: function(voteId, voteSet, user, userProfile) {
+                        if(!voteId || !voteSet || !angular.isArray(voteSet) || !user || !userProfile) {
+                            throw new Error("Invalid arguments", arguments);
+                        }
+
+                        var fb = fbutil.fb("userVotes"),
+                            data = createUserVote(user, userProfile, voteSet);
+
+                        return fb.$set(user.id, data).then(function() {
+                            counters.addSavedVote();
+                            activities.publish("uservotesaved", user, userProfile);
+                        });
+                    },
+
+                    remove: function(user, userProfile) {
+                        if(!user || !userProfile) {
+                            throw new Error("Invalid arguments", arguments);
+                        }
+
+                        var fb = fbutil.fb("userVotes");
+                        return fb.$remove(user.id).then(function() {
+                            counters.addDeletedVote();
+                            activities.publish("uservotedeleted", user, userProfile);
+                        });
+                    }
+                },
+
+                vote: {
+                    save: function(id, vote, user, userProfile) {
+                        if(!id || !angular.isObject(vote)) {
+                            throw new Error("Invalid arguments", arguments);
+                        }
+
+                        var fb = fbutil.fb("votes");
+                        return fb.$set(id, vote).then(function() {
+                            //activities.publish("voteadded", user, userProfile);
+                        })
+                    },
+
+                    remove: function(id, user, userProfile) {
+                        if(!id) {
+                            throw new Error("Invalid arguments", arguments)
+                        }
+
+                        var fb = fbutil.fb("votes");
+                        return fb.$remove(id).then(function(){
+                           //activities.publish("voteremoved", user, userProfile);
+                        });
+                    }
+                }
+
+            };
+
+            function createUserVote(user, userProfile, voteSet) {
+                if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("Invalid arguments"); }
+                // Order voteSet by descending points value
+                voteSet.sort(function (item1, item2) {
+                    return item2.points - item1.points;
+                });
+                var userVote = {
+                    userInfo: {
+                        displayName: user.displayName || "Anonymous",
+                        pageUrl: userProfile.pageUrl || null,
+                        pictureUrl: userProfile.pictureUrl || null
+                    },
+                    date: +moment().utc(),
+                    voteItems: []
+                };
+                voteSet.forEach(function (item, index) {
+                    userVote.voteItems[item.id] = item;
+                });
+                return userVote;
+            }
         }])
 
         .factory("notifier", ["$window", function notifierFactory($window) {

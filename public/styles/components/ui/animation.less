@@ -4,6 +4,16 @@
 .content-container.ng-leave  { z-index:9999; }
 .content-container.ng-enter  { z-index:8888; }
 
+
+// Mixins
+.animated(@duration: "1s") {
+  -webkit-animation-duration: @duration;
+  animation-duration: @duration;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+
 // animate-fade-up, a combination of "fadeOutUp" and "fadeInUp"
 .lh-keyframes(~"fade-up-enter, 0%{opacity:0; transform:translateY(20px);} 100%{opacity:1; transform:translateY(0);}");
 .lh-keyframes(~"fade-up-leave, 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-20px)}");
@@ -26,6 +36,33 @@
   }
   &.ng-leave {
     .animation(0.35s fadeOut ease-in-out);
+  }
+}
+.animate-fade-slow {
+  &.ng-enter {
+    .animation(1s fadeIn ease-in-out);
+  }
+  &.ng-leave {
+    .animation(1s fadeOut ease-in-out);
+  }
+}
+.animate-repeat-fade {
+  .animated;
+
+  &.ng-enter {
+    .fadeInUp;
+  }
+  &.ng-leave {
+    .fadeOutDown;
+  }
+}
+.animate-repeat-bounce {
+
+  &.ng-enter {
+    .animation(1s bounce ease-in-out);
+  }
+  &.ng-leave {
+    .animation(1s fadeOut ease-in-out);
   }
 }
 

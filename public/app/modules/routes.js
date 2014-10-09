@@ -118,6 +118,18 @@
                     }
                 })
 
+                .state("app.votes", {
+                    url: "/votes",
+                    templateUrl: "app/views/pages/votes.html",
+                    controller: "VotesController",
+                    resolve: {
+                        votes: "votes",
+                        userVote: function(userLoginInfo, votes) {
+                            return votes.syncUserVote(userLoginInfo.uid).$loaded();
+                        }
+                    }
+                })
+
                 .state("app.vote.create", {
                     url: "/create",
                     templateUrl: "app/views/pages/vote/create.html"
@@ -167,7 +179,7 @@
 
         .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "activityService", "userData", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, activityService, userData, loginRedirectPath) {
 
-            var isAuthenticated = false, homeUrl = "/", returnUrl = null, lastUserLoginInfo;
+            var isAuthenticated = false, homeUrl = "/votes", returnUrl = null, lastUserLoginInfo;
 
             $log.debug("app.routes:run", {
                 rootScope: $rootScope,
