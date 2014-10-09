@@ -7,7 +7,6 @@
             return {
                 restrict: 'A',
                 link: function (scope, ele, attrs) {
-                    console.log('directive navtoggler', scope);
                     var $app = $('#app');
                     return ele.on('click', function (e) {
                         var collapsed = true;
