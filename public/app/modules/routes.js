@@ -88,7 +88,8 @@
                                         userConfig: syncUserConfig
                                     });
                                 })
-                            })
+                            });
+
                             return dfd.promise;
                         }
                     }
@@ -164,9 +165,9 @@
 
         }])
 
-        .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, loginRedirectPath) {
+        .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "activityService", "userData", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, activityService, userData, loginRedirectPath) {
 
-            var isAuthenticated = false, homeUrl = "/", returnUrl = null;
+            var isAuthenticated = false, homeUrl = "/", returnUrl = null, lastUserLoginInfo;
 
             $log.debug("app.routes:run", {
                 rootScope: $rootScope,
@@ -210,6 +211,11 @@
                     currentStateAuthRequired: isAuthRequired($state.current)
                 });
 
+//                if(isAuthenticated) {
+//                    lastUserLoginInfo = userData.parseUserLoginInfo(userLoginInfo);
+//                    activityService.publish("usersignedin", lastUserLoginInfo.user, lastUserLoginInfo.userProfile);
+//                }
+
                 if(returnUrl) {
                     redirectTo(returnUrl);
                     returnUrl = null;
@@ -226,7 +232,9 @@
                     currentStateAuthRequired: isAuthRequired($state.current)
                 });
 
+//                activityService.publish("usersignedout", lastUserLoginInfo.user, lastUserLoginInfo.userProfile);
                 isAuthenticated = false;
+                lastUserLoginInfo = null;
                 redirectTo(loginRedirectPath);
             });
 

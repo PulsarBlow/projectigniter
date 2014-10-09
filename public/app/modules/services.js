@@ -1,4 +1,3 @@
-/* global S */
 !function (angular) {
     "use strict";
 
@@ -27,7 +26,7 @@
             };
         }])
 
-        .factory("votes", ["$q", "fbutil", "appCounters", function votesFactory($q, fbutil, appCounters) {
+        .factory("votes", ["$q", "fbutil", "appCounters", "activityService", function votesFactory($q, fbutil, appCounters, activityService) {
 
 
             function createVoteData(user, userProfile, voteSet) {
@@ -39,8 +38,8 @@
                 var data = {
                     userInfo: {
                         displayName: user.displayName || "Anonymous",
-                        pageUrl: userProfile.page_url || null,
-                        pictureUrl: userProfile.picture_url || null
+                        pageUrl: userProfile.pageUrl || null,
+                        pictureUrl: userProfile.pictureUrl || null
                     },
                     date: +moment().utc(),
                     voteItems: []
@@ -61,20 +60,22 @@
                 },
                 syncUserVote: syncUserVote,
                 saveVote: function(user, userProfile, voteSet) {
-                    if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("invalid argument"); }
+                    if(!user || !userProfile || !voteSet || !angular.isArray(voteSet)) { throw new Error("Invalid argument"); }
 
                     var fb = fbutil.fb("votes"),
                         data = createVoteData(user, userProfile, voteSet);
                     return fb.$set(user.id, data).then(function() {
                         appCounters.addVotesSaved();
+                        activityService.publish("userVoteSaved", user, userProfile);
                     });
                 },
-                deleteVote: function(userId) {
-                    if(!userId) { throw new Error("Invalid userId"); }
+                deleteVote: function(user, userProfile) {
+                    if(!user || !userProfile) { throw new Error("Invalid arguments"); }
 
                     var fb = fbutil.fb("votes");
-                    return fb.$remove(userId).then(function() {
+                    return fb.$remove(user.id).then(function() {
                         appCounters.addVotesDeleted();
+                        activityService.publish("userVoteDeleted", user, userProfile);
                     });
                 }
             };
@@ -158,8 +159,8 @@
             };
         }])
 
-        .factory("userData", ["$FirebaseObject", "$firebase", "fbutil", "FBURL", "ANONYMOUS_ID", "LOCAL_PROVIDER",
-        function userDataFactory($FirebaseObject, $firebase, fbutil, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
+        .factory("userData", ["$log", "$FirebaseObject", "$firebase", "fbutil", "activityService", "FBURL", "ANONYMOUS_ID", "LOCAL_PROVIDER",
+        function userDataFactory($log, $FirebaseObject, $firebase, fbutil, activityService, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
 
             function guardUserLoginInfo(userLoginInfo) {
                 if(!angular.isObject(userLoginInfo)) {
@@ -209,11 +210,11 @@
                 if(!data) { return {}; }
                 return {
                     email: data.email || null,
-                    email_verified: false,
+                    emailVerified: false,
                     realName: data.name || null,
                     gender: data.gender || null,
-                    page_url: data.link || null,
-                    picture_url: parsePictureUrl(data.picture),
+                    pageUrl: data.link || null,
+                    pictureUrl: parsePictureUrl(data.picture),
                     locale: data.locale || "fr_FR"
                 };
 
@@ -227,16 +228,23 @@
                 if(!data) { return {}; }
                 return {
                     email: data.email || null,
-                    email_verified: data.verified_email || false,
+                    emailVerified: data.verified_email || false,
                     realName: data.name || null,
                     gender: data.gender || null,
-                    page_url: data.link || null,
-                    picture_url: data.picture || null,
+                    pageUrl: data.link || null,
+                    pictureUrl: data.picture || null,
                     locale: data.locale || "fr_FR"
                 };
             }
 
             return {
+
+                parseUserLoginInfo: function(userLoginInfo) {
+                    return {
+                        user: parseUser(userLoginInfo),
+                        userProfile: parseUserProfile(userLoginInfo)
+                    };
+                },
 
                 /**
                  * Create user data record if it doesn't exist in firebase
@@ -246,11 +254,19 @@
                 tryCreateUser: function(userLoginInfo) {
                     guardUserLoginInfo(userLoginInfo);
 
-                    var $fb = fbutil.fb("users/" + userLoginInfo.uid);
+                    var $fb = fbutil.fb("users/" + userLoginInfo.uid),
+                    // These 2 are caches to not parse during transaction completion
+                        user = parseUser(userLoginInfo),
+                        userProfile = parseUserProfile(userLoginInfo);
 
                     return $fb.$transaction(function(currentData){
                         if(currentData === null) {
                             return parseUser(userLoginInfo);
+                        }
+                    }).then(function(result){
+                        $log.debug("tryCreateUser - %s", result === null ? "aborted":"updated");
+                        if(angular.isObject(result)) {
+                            activityService.publish("usersignedup", user, userProfile);
                         }
                     });
                 },
@@ -341,6 +357,136 @@
         .factory("userFavorites", ["MAX_FAVORITES", function userFavoritesFactory(MAX_FAVORITES) {
             var userFavorites = new FavoriteDictionary(MAX_FAVORITES);
             return userFavorites;
+        }])
+
+        .factory("activityService", ["$q", "$log", "$rootScope", "fbutil", "ACTIVITY_LIMIT", function activitiesFactory($q, $log, $rootScope, fbutil, ACTIVITY_LIMIT) {
+
+            var messages = {
+                usersignedup: {
+                    title: "Nouvel arrivant!",
+                    content: "{{displayName}} vient de rejoindre notre petite communauté. Bienvenue à lui/elle !",
+                    type: "primary",
+                    icon: "child"
+                },
+                usersignedin: {
+                    title: "Connexion",
+                    content: "{{displayName}} s'est connecté.",
+                    type: "info",
+                    icon: "sign-in"
+                },
+                usersignedout: {
+                    title: "Déconnexion",
+                    content: "{{displayName}} s'est déconnecté.",
+                    type: "default",
+                    icon: "sign-out"
+                },
+                uservotesaved: {
+                    title: "A voté",
+                    content: "{{displayName}} a voté. Merci à lui.",
+                    type: "success",
+                    icon: "heart"
+                },
+                uservotedeleted: {
+                    title: "N'aime plus son vote",
+                    content: "{{displayName}} n'aimait pas son vote et l'a supprimé.",
+                    type: "danger",
+                    icon: "undo"
+                },
+                hasKey: function(keyName) {
+                    if(!keyName) { return false; }
+                    return (keyName.toLowerCase() in messages);
+                },
+                getMessage: function(messageName) {
+                    if(!messageName || !messages.hasKey(messageName)) {
+                        throw new Error("unknown message : " + messageName);
+                    }
+                    return messages[messageName.toLowerCase()];
+                }
+            };
+
+            function createActivity(activityName, user, userProfile) {
+                var message = messages.getMessage(activityName);
+                var templateValues = {
+                    displayName: (user && user.displayName) ? user.displayName : "Anonymous"
+                };
+                return {
+                    date: moment().utc().toISOString(),
+                    title: S(message.title).template(templateValues).s,
+                    content: S(message.content).template(templateValues).s,
+                    type: message.type,
+                    icon: message.icon,
+                    userInfo: createUserInfo(user, userProfile)
+                };
+
+                function createUserInfo(user, userProfile) {
+                    if(!user || !user.id || !user.displayName) {
+                        return null;
+                    }
+
+                    return {
+                        id: user.id,
+                        displayName: user.displayName || "Anonymous",
+                        pageUrl: userProfile && userProfile.pageUrl
+                            ? userProfile.pageUrl : null,
+                        pictureUrl: userProfile && userProfile.pictureUrl
+                            ? userProfile.pictureUrl : null
+                    };
+                }
+            }
+            function saveActivity(activity) {
+                var activitiesRef = fbutil.ref("activities"),
+                    newActivityRef = activitiesRef.push(),
+                    priority = +moment("2030-01-01T00:00:00") - +moment(),
+                    dfd = $q.defer();
+                newActivityRef.setWithPriority(activity, priority, function(err){
+                    if(err) {
+                        dfd.reject(err);
+                    } else {
+                        dfd.resolve(activity);
+                    }
+                });
+                return dfd.promise;
+            };
+
+            return {
+
+                /**
+                 * Publish an activity and returns a promise which
+                 * resolve with the created activity
+                 * @param activityName
+                 * @param user
+                 * @param userProfile
+                 * @returns {*}
+                 */
+                publish: function(activityName, user, userProfile) {
+                    if(!messages.hasKey(activityName)) {
+                        var dfd = $q.defer();
+                        dfd.reject("unknown activity " + activityName);
+                        return dfd.promise;
+                    }
+                    var activity = createActivity(activityName, user, userProfile);
+                    $log.debug("publishing activity", activity);
+                    return saveActivity(activity);
+                },
+
+                /**
+                 * Returns true if the activity is a known activity
+                 * @param activityName
+                 */
+                exist: function(activityName) {
+                    return messages.hasKey(activityName);
+                },
+
+                sync: function(limit) {
+                    return fbutil.syncArray("activities", {limit: limit || ACTIVITY_LIMIT });
+                },
+
+                like: function(id, user, userProfile) {
+                    if(!id) { return; }
+                    var activityRef = fbutil.ref("activities").child(id).child("likers").child(user.id);
+                    activityRef.set({displayName: user.displayName, pictureUrl: userProfile.pictureUrl });
+                }
+            };
         }])
 
         .factory("notifier", ["$window", function notifierFactory($window) {

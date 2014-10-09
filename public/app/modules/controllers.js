@@ -30,10 +30,10 @@
 
             $log.debug("AppController instantiated", {dataSync: dataSync, userLoginInfo: userLoginInfo});
 
-            dataSync.app.$bindTo($scope, "app");
-            dataSync.user.$bindTo($scope, "user");
-            dataSync.userProfile.$bindTo($scope, "userProfile");
-            dataSync.userConfig.$bindTo($scope, "userConfig");
+            dataSync.app.$bindTo($rootScope, "app");
+            dataSync.user.$bindTo($rootScope, "user");
+            dataSync.userProfile.$bindTo($rootScope, "userProfile");
+            dataSync.userConfig.$bindTo($rootScope, "userConfig");
 
             // Bind to nav toggle event
             $rootScope.$on("nav:stateChanged", function(event, args) {
@@ -46,8 +46,25 @@
             };
         }])
 
-        .controller("HomeController", ["$log", "$scope", function ($log, $scope) {
+        .controller("HomeController", ["$log", "$scope", "activityService", "ACTIVITY_LIMIT", function ($log, $scope, activityService, ACTIVITY_LIMIT) {
             $log.debug("HomeController instantiated");
+
+            var limit = ACTIVITY_LIMIT;
+            $scope.activities = activityService.sync(limit);
+            $scope.limit = limit;
+            $scope.getMoment = function(value) {
+                return moment(value).fromNow();
+            };
+            $scope.like = function(id) {
+                activityService.like(id, $scope.user, $scope.userProfile);
+            };
+            $scope.isMyActivity = function(activityId) {
+                return activityId === $scope.user.id;
+            }
+            $scope.hasLiked = function(activityLikers) {
+              if(!activityLikers) { return false; }
+              return $scope.user.id in activityLikers;
+            };
         }])
 
         .controller("VoteController", ["$log", "$scope", "$state", "names", "userVote", "userFavorites",
@@ -146,7 +163,7 @@
             }
 
             $scope.deleteVote = function() {
-                votes.deleteVote($scope.user.id);
+                votes.deleteVote($scope.user, $scope.userProfile);
                 notifier.success("<strong>Vote supprimé!</strong><br />Vous pouvez revoter.")
                 $state.go("app.vote.create.step1");
             }
@@ -177,7 +194,9 @@
                     notifier.info("Vous ne recevrez pas d'email.", "Désinscription enregistrée");
                 }
             }
+
             appCounters.sync.$bindTo($scope, "appCounters");
+
             function buildVoteResult(votes) {
 
                 if(!angular.isArray(votes) || !votes.length) {

@@ -13,5 +13,7 @@
 
     .constant("loginRedirectPath", "/signin")
 
+    .constant("ACTIVITY_LIMIT", 50)
+
     ;
 }(angular = window.angular || {});
