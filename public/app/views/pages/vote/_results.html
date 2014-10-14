@@ -1,0 +1,82 @@
+<div data-ng-show="userVote.isEmpty()" style="margin-bottom:10px">
+    <button class="btn btn-primary btn-lg" data-ng-click="tabs[1].active = true">Je vote</button>
+</div>
+<div data-ng-show="!voteResult">
+    <p>Personne n'a encore voté.</p>
+</div>
+<div data-ng-show="voteResult">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="list-group vote-results">
+                    <div class="list-group-item" data-ng-repeat="item in voteResult.allVotes">
+                        <div class="list-group-item-heading">
+                            <div class="item-rank">#{{$index + 1}}</div>
+                            <div class="item-value">{{item.value}}</div>
+                        </div>
+
+                        <div class="list-group-item-footer">
+                            <div class="item-points">
+                                {{item.points}} points
+                            </div>
+                            <div class="voters">
+                                <a class="voter" data-ng-repeat="voter in item.voters"
+                                   data-ng-href="{{voter.pageUrl}}" target="_blank"
+                                   tooltip="{{voter.displayName}} - {{voter.points}} pts"
+                                   tooltip-placement="right"><img data-ng-src="{{voter.pictureUrl}}"
+                                                                  class="img-circle img20_20"
+                                                                  alt="{{voter.displayName}}"/></a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-success">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteCounters.saved}}</p>
+                                    <p>Votes enregistrés</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-danger">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteCounters.deleted}}</p>
+                                    <p>Votes supprimés</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-info">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteResult.totalPoints}}</p>
+                                    <p>Points assignés</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel mini-box">
+                    <div class="panel-heading"><h4>A voté !</h4></div>
+                    <div class="panel-body">
+                        <div class="voters">
+                            <a class="voter" data-ng-repeat="voter in voteResult.allVoters"
+                               data-ng-href="{{voter.pageUrl}}" target="_blank"><img data-ng-src="{{voter.pictureUrl}}" class="img-circle img30_30"  alt="{{voter.displayName}}" title="{{voter.displayName}}"/>{{voter.displayName}}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="callout callout-info">
+                    <h4>Info classement</h4>
+
+                    <p>Ce classement en mise à jour en temps réel durant toute la durée du vote.<br/>Les noms sont classés par popularité décroissante (nombre de points attribués). Si deux noms obtiennent le même nombre de points, le nom ayant été choisi par le plus grand nombre de participants prendra la première position.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

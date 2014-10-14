@@ -46,20 +46,33 @@
             $log.debug("Cleaning up - userConfigs... done");
             ref.child("userProfiles").set(null);
             $log.debug("Cleaning up - userProfiles... done");
+            ref.child("userVotes").set(null);
+            $log.debug("Cleaning up - userVotes... done");
             ref.child("votes").set(null);
             $log.debug("Cleaning up - votes... done");
+            ref.child("voteResults").set(null);
+            $log.debug("Cleaning up - voteResults... done");
+            ref.child("counters").set(null);
+            $log.debug("Cleaning up - counters... done");
+            createVotes();
         }
 
         function createVotes() {
             $log.debug("Creating votes");
             var votes = [
             {
+                id: "001-project-name",
                 isLocked: false,
                 dateStart: null,
                 dateEnd: moment().utc().add(1, "month").toISOString(),
-                title: "Nom du project",
+                title: "Nom du projet",
                 description: "Parcourez la sélection des noms retenus pour le projet et votez pour vos favoris.",
                 icon: "copyright",
+                type: "listpick",
+                options:{
+                    minItems: 5,
+                    maxItems: 5
+                },
                 items : {
                     "all-around-cook" : {
                         "availability" : {
@@ -496,43 +509,60 @@
                 }
             },
             {
+                id: "002-project-logo",
                 isLocked: true,
                 dateStart: null,
                 dateEnd: null,
                 title: "Logo et identité visuelle",
                 description: "Le nom c'est bien, mais le nom avec une identité visuelle qui assure c'est encore mieux. Aidez nous à choisir celle qui va bien!",
                 icon: "newspaper-o",
+                type: "listpick",
+                options:{
+                    minItems: 5,
+                    maxItems: 5
+                },
                 items: null
             },
             {
+                id: "003-project-features",
                 isLocked: true,
                 dateStart: null,
                 dateEnd: null,
                 title: "Fonctionnalités v1.0",
                 description: "Nous vous proposons une sélection de fonctionnalités retenues pour la v1. Dites nous ce qui vous donne envie, votre avis d'utilisateur est précieux.",
                 icon: "cubes",
+                type: "listpick",
+                options:{
+                    minItems: 5,
+                    maxItems: 5
+                },
                 items: null
             },
             {
+                id: "004-project-webdesign",
                 isLocked: true,
                 dateStart: null,
                 dateEnd: null,
                 title: "Design v1.0",
                 description: "Pour habiller les fonctionnalités que vous avez choisis, il nous faut un packaging à la hauteur de vos exigences. Un bon site ça se dévore aussi avec les yeux.",
                 icon: "paint-brush",
+                type: "listpick",
+                options:{
+                    minItems: 5,
+                    maxItems: 5
+                },
                 items: null
             }];
 
             var ref = new Firebase("https://burning-inferno-9731.firebaseio.com/votes");
             ref.set(null);
-            $log.debug("Creating votes - votes removes");
+            $log.debug("Creating votes - votes deleted");
             votes.forEach(function(item, index) {
-                var voteRef = ref.push();
-                $log.debug('Cleaning votes - vote "%s" pushed', item.title);
-                voteRef.set(item);
-                $log.debug('Cleaning votes - vote "%s" created', item.title);
+                //var voteRef = ref.push();
+                //$log.debug('Creating votes - vote "%s" pushed', item.title);
+                ref.child(item.id).set(item);
+                $log.debug('Creating votes - vote "%s" created', item.id);
             });
-
         }
 
 

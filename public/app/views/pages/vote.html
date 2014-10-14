@@ -1,11 +1,23 @@
-<div class="page page-vote">
-    <section class="panel panel-default">
-        <div class="panel-heading">
-            <strong><span class="fa fa-heart"></span> Vote</strong>
+<div class="page page-votes">
+
+    <div class="panel mini-box opened clearfix">
+        <i class="fa fa-{{vote.icon}} pull-left"></i>
+        <div class="box-info">
+            <p class="size-h3">{{vote.title}}</p>
+            <p class="text-muted">{{vote.description}}</p>
         </div>
-        <div class="panel-body">
-            <section ui-view></section>
+        <div class="alert alert-info pull-right" data-ng-if="showTimer(vote)"><i class="fa fa-clock-o fa-3x pull-left"></i>Se termine dans :
+            <timer class="timer-wrapper" end-time="vote.dateEnd">{{ddays}} jours, {{hhours}} heures, {{mminutes}} minutes et {{sseconds}} secondes.</timer>
+            <p><label class="ui-checkbox"><input type="checkbox"  data-ng-model="userConfig.emailOnVoteEnd" data-ng-click="optinFeedback()"><span>Recevoir le résultat final par email</span></label>.</p>
         </div>
+    </div>
+
+    <section class="ui-tab-container ui-tab-horizontal">
+        <tabset class="ui-tab">
+            <tab data-ng-repeat="tab in tabs" heading="{{tab.title}}" active="tab.active">
+                <section data-ng-include="tab.view"></section>
+            </tab>
+        </tabset>
     </section>
 
 </div>

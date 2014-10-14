@@ -12,8 +12,8 @@
                     return syncData.apply(null, arguments).$asArray();
                 },
                 ref: firebaseRef,
-                fb: function(path) {
-                    return $firebase(firebaseRef(path));
+                fb: function(path, options) {
+                    return $firebase(firebaseRef(path), options);
                 }
             };
 

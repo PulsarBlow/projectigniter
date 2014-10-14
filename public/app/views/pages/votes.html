@@ -1,16 +1,17 @@
-<div class="page page-vote">
+<div class="page page-votes">
+
     <section class="panel panel-default">
         <div class="panel-heading">
-            <strong><span class="fa fa-archive"></span> Vote</strong>
+            <strong><span class="fa fa-heart"></span> Votes</strong>
         </div>
         <div class="panel-body">
             <div class="callout callout-info">
                 <h4>Votes</h4>
-                <p>Ce page affiche la liste des votes en cours ou archivés.</p>
+                <p>Ce page affiche la liste des votes en cours, à venir ou archivés.</p>
             </div>
 
-            <div class="vote-list animate-repeat-fade" data-ng-repeat="vote in votes">
-                <div class="vote-list-item ui-ribbon-container {{getStatus(vote).value}}">
+            <div class="vote-list animate-fade" data-ng-repeat="vote in votes">
+                <div class="vote-list-item ui-ribbon-container {{getStatus(vote).value}}" data-ng-click="viewDetails(vote)">
                     <div class="ui-ribbon-wrapper">
                         <div class="ui-ribbon">
                             {{getStatus(vote).label}}

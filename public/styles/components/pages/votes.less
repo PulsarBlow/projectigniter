@@ -1,7 +1,7 @@
 @import "../../_variables";
 @import "../../_mixins";
 
-.page-vote {
+.page-votes {
   .favorite-list {
     a {
       cursor: move;
@@ -82,15 +82,6 @@
         margin-top: 10px;
       }
 
-      .timer-wrapper {
-        //font-size: 1.2em;
-        font-weight: 400;
-        span {
-          font-weight: bold;
-        }
-      }
-
-
       &.opened, &.closed {
         opacity: 1;
         cursor: pointer;
@@ -106,5 +97,45 @@
 
       }
     }
+  }
+
+  .vote-blank {
+
+  }
+
+  .timer-wrapper {
+    //font-size: 1.2em;
+    font-weight: 400;
+    span {
+      font-weight: bold;
+    }
+  }
+
+  // Overrides
+  .panel.mini-box {
+
+    &.opened {
+      > i {
+        background-color: @brand-primary;
+        color: @white;
+      }
+    }
+
+    > i {
+      padding: .2em .25em .15em;
+      border: solid .08em #EEE;
+      border-radius: 50%;
+      font-size: 3em;
+    }
+  }
+
+  .ui-tab-container {
+    .tab-content {
+      background-color: @white;
+    }
+  }
+
+  .alert {
+    margin: 0;
   }
 }

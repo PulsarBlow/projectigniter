@@ -49,16 +49,14 @@
                     templateUrl: "app/views/index.html",
                     controller : "AppController",
                     resolve: {
-                        userLoginInfo: function(requireUser) {
-                            return requireUser();
-                        },
-                        dataSync: function($q, simpleLogin, appData, userData) {
+//                        userLoginInfo: function(requireUser) {
+//                            return requireUser();
+//                        },
+                        dataSync: function($q, simpleLogin, userData) {
                             var dfd = $q.defer(),
                                 promises = [],
-                                syncApp,
                                 syncUser,
                                 syncUserProfile,
-                                syncUserVote,
                                 syncUserConfig;
 
                             simpleLogin.getUser().then(function(userLoginInfo) {
@@ -66,25 +64,19 @@
                                     dfd.reject();
                                     return;
                                 }
-                                syncApp = appData;
                                 syncUser = userData.syncUser(userLoginInfo.uid);
                                 syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
-                                syncUserVote = userData.syncUserVote(userLoginInfo.uid);
                                 syncUserConfig = userData.syncUserConfig(userLoginInfo.uid);
                                 $q.all([
-                                    syncApp.$loaded(),
                                     userData.tryCreateUser(userLoginInfo),
                                     userData.tryCreateUserProfile(userLoginInfo),
                                     userData.tryCreateUserConfig(userLoginInfo),
                                     syncUser.$loaded(),
-                                    syncUserProfile.$loaded(),
-                                    syncUserVote.$loaded()
+                                    syncUserProfile.$loaded()
                                 ]).then(function() {
                                     dfd.resolve({
-                                        app: syncApp,
                                         user: syncUser,
                                         userProfile: syncUserProfile,
-                                        userVote: syncUserVote,
                                         userConfig: syncUserConfig
                                     });
                                 })
@@ -106,7 +98,7 @@
                     templateUrl: "app/views/pages/concept.html"
                 })
 
-                .state("app.vote", {
+                /*.state("app.vote", {
                     url: "/vote",
                     templateUrl: "app/views/pages/vote.html",
                     controller: "VoteController",
@@ -116,16 +108,39 @@
                             return votes.syncUserVote(userLoginInfo.uid).$loaded();
                         }
                     }
-                })
+                })*/
 
                 .state("app.votes", {
                     url: "/votes",
                     templateUrl: "app/views/pages/votes.html",
-                    controller: "VotesController",
+                    controller: "VotesController"
+                })
+
+                .state("app.vote", {
+                    url: "/vote/:id",
+                    templateUrl: "app/views/pages/vote.html",
+                    controller: "VoteController",
                     resolve: {
-                        votes: "votes",
-                        userVote: function(userLoginInfo, votes) {
-                            return votes.syncUserVote(userLoginInfo.uid).$loaded();
+                        vote: function($q, $location, $stateParams, voteService) {
+                            var dfd = $q.defer();
+                            voteService.sync.vote($stateParams.id).$loaded(function(vote){
+                               if(!vote.id) {
+                                   $location.replace();
+                                   $location.path("/404");
+                                   dfd.reject();
+                               } else {
+                                   dfd.resolve(vote);
+                               }
+                            });
+
+                            return dfd.promise;
+                        },
+                        userVote: function($q, $stateParams, voteService, dataSync) {
+                            var dfd = $q.defer();
+                            voteService.sync.userVote(dataSync.user.id, $stateParams.id).$loaded(function(userVote){
+                                dfd.resolve(userVote);
+                            });
+                            return dfd.promise;
                         }
                     }
                 })
@@ -179,7 +194,7 @@
 
         .run(["$log", "$location", "$rootScope", "$state", "simpleLogin", "activityService", "userData", "loginRedirectPath", function($log, $location, $rootScope, $state, simpleLogin, activityService, userData, loginRedirectPath) {
 
-            var isAuthenticated = false, homeUrl = "/votes", returnUrl = null, lastUserLoginInfo;
+            var isAuthenticated = false, homeUrl = "/", returnUrl = null, lastUserLoginInfo;
 
             $log.debug("app.routes:run", {
                 rootScope: $rootScope,
