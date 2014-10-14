@@ -49,9 +49,6 @@
                     templateUrl: "app/views/index.html",
                     controller : "AppController",
                     resolve: {
-//                        userLoginInfo: function(requireUser) {
-//                            return requireUser();
-//                        },
                         dataSync: function($q, simpleLogin, userData) {
                             var dfd = $q.defer(),
                                 promises = [],
@@ -98,18 +95,6 @@
                     templateUrl: "app/views/pages/concept.html"
                 })
 
-                /*.state("app.vote", {
-                    url: "/vote",
-                    templateUrl: "app/views/pages/vote.html",
-                    controller: "VoteController",
-                    resolve: {
-                        votes: "votes",
-                        userVote: function(userLoginInfo, votes) {
-                            return votes.syncUserVote(userLoginInfo.uid).$loaded();
-                        }
-                    }
-                })*/
-
                 .state("app.votes", {
                     url: "/votes",
                     templateUrl: "app/views/pages/votes.html",
@@ -143,51 +128,6 @@
                             return dfd.promise;
                         }
                     }
-                })
-
-                .state("app.vote.create", {
-                    url: "/create",
-                    templateUrl: "app/views/pages/vote/create.html"
-                })
-
-                .state("app.vote.create.step0", {
-                    url: "/about",
-                    templateUrl: "app/views/pages/vote/create.step0.html"
-                })
-
-                .state("app.vote.create.step1", {
-                    url: "/select",
-                    templateUrl: "app/views/pages/vote/create.step1.html",
-                    controller: "VoteSelectionController"
-                })
-
-                .state("app.vote.create.step2", {
-                    url: "/points",
-                    templateUrl: "app/views/pages/vote/create.step2.html",
-                    controller: "VoteSortingController"
-                })
-
-                .state("app.vote.create.step3", {
-                    url: "/cast",
-                    templateUrl: "app/views/pages/vote/create.step3.html",
-                    controller: "VoteCastController"
-                })
-
-                .state("app.vote.edit", {
-                    url: "/edit",
-                    templateUrl: "app/views/pages/vote/edit.html",
-                    controller: "VoteEditController"
-                })
-
-                .state("app.results", {
-                    url: "/results",
-                    templateUrl: "app/views/pages/results.html",
-                    controller: "ResultsController"
-                })
-
-                .state("app.account", {
-                    url: "/account",
-                    templateUrl: "app/views/pages/account.html"
                 })
 
         }])

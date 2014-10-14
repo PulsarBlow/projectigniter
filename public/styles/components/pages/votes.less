@@ -1,5 +1,6 @@
 @import "../../_variables";
-@import "../../_mixins";
+@import (reference) "../../_mixins";
+@import (reference) "../../../bower_components/bootstrap/less/utilities";
 
 .page-votes {
   .favorite-list {
@@ -56,7 +57,6 @@
       border-radius: 2px;
       padding: 15px;
       opacity: 0.5;
-
 
       .item-media, .item-body {
         float: left;
@@ -137,5 +137,48 @@
 
   .alert {
     margin: 0;
+  }
+
+  .vote-results {
+    .list-group-item {
+      .clearfix;
+    }
+
+    .list-group-item-heading {
+
+      position: relative;
+      .clearfix;
+      font-size: 2em;
+
+    }
+
+    .list-group-item-footer {
+      .clearfix;
+
+      .item-points {
+        float: right;
+      }
+    }
+
+    .item-rank {
+      color: @brand-primary;
+      float: right;
+    }
+
+    .item-points {
+      font-size: 0.85em;
+      color: @gray-light;
+      //background-color: @brand-info;
+      //border-radius: 3px;
+      //padding: 3px 5px;
+    }
+  }
+
+  .voter {
+    margin-right: 10px;
+
+    > img {
+      border: 3px solid @gray-lighter;
+    }
   }
 }
