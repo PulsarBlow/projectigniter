@@ -1,0 +1,121 @@
+@import (reference) "../../_variables";
+@import (reference) "../../_mixins";
+
+.content-container.ng-leave  { z-index:9999; }
+.content-container.ng-enter  { z-index:8888; }
+
+// Keyframes
+@-webkit-keyframes fadeUpEnter {
+  0% {
+    opacity:0;
+    -webkit-transform:translateY(20px);
+    transform:translateY(20px);
+  }
+
+  100% {
+    opacity:1;
+    -webkit-transform:translateY(0);
+    transform:translateY(0);
+  }
+}
+@keyframes fadeUpEnter {
+  0% {
+    opacity:0;
+    -webkit-transform:translateY(20px);
+    transform:translateY(20px);
+  }
+
+  100% {
+    opacity:1;
+    -webkit-transform:translateY(0);
+    transform:translateY(0);
+  }
+}
+
+@-webkit-keyframes fadeUpLeave {
+  0% {
+    opacity:1;
+    -webkit-transform:translateY(0);
+    transform:translateY(0);
+  }
+
+  100% {
+    opacity:0;
+    -webkit-transform:translateY(-20px);
+    transform:translateY(-20px);
+  }
+}
+@keyframes fadeUpLeave {
+  0% {
+    opacity:1;
+    -webkit-transform:translateY(0);
+    transform:translateY(0);
+  }
+
+  100% {
+    opacity:0;
+    -webkit-transform:translateY(-20px);
+    transform:translateY(-20px);
+  }
+}
+
+// Mixins
+.animated(@duration: "1s") {
+  -webkit-animation-duration: @duration;
+  animation-duration: @duration;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+.animated-in(@animation) {
+  &.ng-enter, &.ng-hide-remove {
+    .animation(@animation);
+  }
+}
+.animated-out(@animation) {
+  &.ng-leave, &.ng-hide {
+    .animation(@animation);
+  }
+}
+
+.animate-fade-up {
+  .animated-in(.35s fadeUpEnter ease-in-out);
+
+  &.slow {
+    .animated-in(1s fadeUpEnter ease-in-out);
+  }
+}
+
+.animate-fade {
+  .animated-in(.35s fadeIn ease-in-out);
+  .animated-out(.35s fadeOut ease-in-out);
+
+  &.slow {
+    .animated-in(1s fadeIn ease-in-out);
+    .animated-out(1s fadeOut ease-in-out);
+  }
+}
+
+.animate-flash {
+  .animated-in(.35s flash ease-in-out);
+  .animated-out(.35s fadeOut ease-in-out);
+}
+
+.animate-bounce {
+  .animated-in(.35s flash ease-in-out);
+  .animated-out(.35s fadeOut ease-in-out);
+}
+
+.animate-repeat-stack {
+  .animated-in(0.35s fadeInDown ease-in-out);
+  .animated-out(0.35s fadeOutUp ease-in-out);
+}
+
+.animate-repeat-bounce {
+
+  &.ng-enter, &.ng-hide-remove {
+    .bounce;
+  }
+  &.ng-leave {
+    .fadeOut;
+  }
+}

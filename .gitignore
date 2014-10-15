@@ -73,4 +73,6 @@ atlassian-ide-plugin.xml
 com_crashlytics_export_strings.xml
 
 # Bower
-bower_components/
+dist
+.tmp
+bower_components
