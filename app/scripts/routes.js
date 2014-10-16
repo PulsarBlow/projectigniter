@@ -49,7 +49,7 @@
                     templateUrl: 'views/index.html',
                     controller : 'AppController',
                     resolve: {
-                        dataSync: function($q, simpleLogin, userData) {
+                        dataSync: function($q, simpleLogin, userService) {
                             var dfd = $q.defer(),
                                 syncUser,
                                 syncUserProfile,
@@ -60,13 +60,13 @@
                                     dfd.reject();
                                     return;
                                 }
-                                syncUser = userData.syncUser(userLoginInfo.uid);
-                                syncUserProfile = userData.syncUserProfile(userLoginInfo.uid);
-                                syncUserConfig = userData.syncUserConfig(userLoginInfo.uid);
+                                syncUser = userService.syncUser(userLoginInfo.uid);
+                                syncUserProfile = userService.syncUserProfile(userLoginInfo.uid);
+                                syncUserConfig = userService.syncUserConfig(userLoginInfo.uid);
                                 $q.all([
-                                    userData.tryCreateUser(userLoginInfo),
-                                    userData.tryCreateUserProfile(userLoginInfo),
-                                    userData.tryCreateUserConfig(userLoginInfo),
+                                    userService.tryCreateUser(userLoginInfo),
+                                    userService.tryCreateUserProfile(userLoginInfo),
+                                    userService.tryCreateUserConfig(userLoginInfo),
                                     syncUser.$loaded(),
                                     syncUserProfile.$loaded()
                                 ]).then(function() {
@@ -131,7 +131,7 @@
 
         }])
 
-        .run(['$log', '$location', '$rootScope', '$state', 'simpleLogin', 'activityService', 'userData', 'loginRedirectPath', function($log, $location, $rootScope, $state, simpleLogin, activityService, userData, loginRedirectPath) {
+        .run(['$log', '$location', '$rootScope', '$state', 'simpleLogin', 'activityService', 'loginRedirectPath', function($log, $location, $rootScope, $state, simpleLogin, activityService, loginRedirectPath) {
 
             var isAuthenticated = false, homeUrl = '/', returnUrl = null, lastUserLoginInfo;
 

@@ -34,21 +34,26 @@
             };
         }])
 
-        .controller('HomeController', ['$log', '$scope', 'activityService', 'ACTIVITY_LIMIT', function ($log, $scope, activityService, ACTIVITY_LIMIT) {
+        .controller('HomeController', ['$log', '$scope', 'activityService', 'voteService', 'ACTIVITY_LIMIT', function ($log, $scope, activityService, voteService, ACTIVITY_LIMIT) {
             $log.debug('HomeController instantiated');
 
             var limit = ACTIVITY_LIMIT;
             $scope.activities = activityService.sync(limit);
             $scope.limit = limit;
+            $scope.votes = voteService.sync.votes;
+
             $scope.getMoment = function(value) {
                 return moment(value).fromNow();
             };
+
             $scope.like = function(id) {
                 activityService.like(id, $scope.user, $scope.userProfile);
             };
+
             $scope.isMyActivity = function(activityId) {
                 return activityId === $scope.user.id;
             };
+
             $scope.hasLiked = function(activityLikers) {
               if(!activityLikers) { return false; }
               return $scope.user.id in activityLikers;
@@ -62,7 +67,7 @@
             $scope.votes = voteService.sync.votes;
 
             $scope.getStatus = function(vote) {
-                var status = { value: 'locked', label:'Bientôt' };
+                var status = { value: 'locked', label:'A venir' };
                 if(!angular.isObject(vote)) {
                     return status;
                 }

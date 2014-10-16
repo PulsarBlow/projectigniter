@@ -63,7 +63,7 @@
             };
         }])
 
-        .factory('userData', ['$log', '$FirebaseObject', '$firebase', 'fbutil', 'activityService', 'FBURL', 'ANONYMOUS_ID', 'LOCAL_PROVIDER', function ($log, $FirebaseObject, $firebase, fbutil, activityService, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
+        .factory('userService', ['$log', '$FirebaseObject', '$firebase', 'fbutil', 'activityService', 'FBURL', 'ANONYMOUS_ID', 'LOCAL_PROVIDER', function ($log, $FirebaseObject, $firebase, fbutil, activityService, FBURL, ANONYMOUS_ID, LOCAL_PROVIDER) {
 
             function guardUserLoginInfo(userLoginInfo) {
                 if (!angular.isObject(userLoginInfo)) {
@@ -79,6 +79,7 @@
                 if (!angular.isObject(data) || !data) {
                     return null;
                 }
+
                 return {
                     id: data.uid || ANONYMOUS_ID,
                     provider: data.provider || LOCAL_PROVIDER,
@@ -93,6 +94,7 @@
                 if (!angular.isObject(data) || !angular.isObject(data.thirdPartyUserData)) {
                     return null;
                 }
+
                 return parseProviderData(data.provider, data.thirdPartyUserData);
             }
 
@@ -126,6 +128,7 @@
                 if (!data) {
                     return {};
                 }
+
                 return {
                     email: data.email || null,
                     emailVerified: false,
@@ -177,12 +180,22 @@
                         userProfile = parseUserProfile(userLoginInfo);
 
                     return $fb.$transaction(function (currentData) {
+                        var user = parseUser(userLoginInfo);
                         if (currentData === null) {
-                            return parseUser(userLoginInfo);
+                            return user;
                         }
+
                     }).then(function (result) {
                         if (angular.isObject(result)) {
                             activityService.publish('usersignedup', user, userProfile);
+                        } else {
+                            // update user data
+                            var sync = $fb.$asObject();
+                            sync.$loaded(function () {
+                                sync.accessToken = user.accessToken;
+                                sync.displayName = user.displayName;
+                                sync.$save();
+                            });
                         }
                     });
                 },
@@ -195,11 +208,28 @@
                 tryCreateUserProfile: function (userLoginInfo) {
                     guardUserLoginInfo(userLoginInfo);
 
-                    var $fb = fbutil.fb('userProfiles/' + userLoginInfo.uid);
+                    var $fb = fbutil.fb('userProfiles/' + userLoginInfo.uid),
+                        userProfile = parseUserProfile(userLoginInfo);
 
                     return $fb.$transaction(function (currentData) {
                         if (currentData === null) {
                             return parseUserProfile(userLoginInfo);
+                        }
+                    }).then(function (result) {
+                        if (angular.isObject(result)) {
+                            // newly created profile, do nothing
+                        } else {
+                            // update userProfile data
+                            var sync = $fb.$asObject();
+                            sync.$loaded(function () {
+                                sync.email = userProfile.email;
+                                sync.emailVerified = userProfile.emailVerified;
+                                sync.locale = userProfile.locale;
+                                sync.pageUrl = userProfile.pageUrl;
+                                sync.pictureUrl = userProfile.pictureUrl;
+                                sync.realName = userProfile.realName;
+                                sync.$save();
+                            });
                         }
                     });
                 },
@@ -273,13 +303,15 @@
         .factory('counterService', ['$FirebaseObject', 'fbutil', function ($FirebaseObject, fbutil) {
 
             var VoteCountersFactory = $FirebaseObject.$extendFactory({
-               plusSaved: function() {
-                   this.saved = this.saved || 0;
-                   this.saved++;
-                   this.$save();
-               },
-                plusDeleted: function() {
-                 this.deleted = this.deleted || 0;
+                plusSaved: function () {
+                    this.deleted = this.deleted || 0; // Initialize if needed
+                    this.saved = this.saved || 0;
+                    this.saved++;
+                    this.$save();
+                },
+                plusDeleted: function () {
+                    this.saved = this.saved || 0; // Initialize if needed
+                    this.deleted = this.deleted || 0;
                     this.deleted++;
                     this.$save();
                 }
@@ -433,16 +465,18 @@
             };
         }])
 
-        .factory('voteService', ['$q','$FirebaseObject', '$FirebaseArray', 'fbutil', 'counterService', 'activityService', function ($q, $FirebaseObject, $FirebaseArray, fbutil, counters, activities) {
+        .factory('voteService', ['$q', '$FirebaseObject', '$FirebaseArray', 'fbutil', 'counterService', 'activityService', function ($q, $FirebaseObject, $FirebaseArray, fbutil, counters, activities) {
 
-            function createVoteResult(user, userProfile, voteSet) {
-                if (!user || !userProfile || !voteSet || !angular.isArray(voteSet)) {
+            function createUserVoteResult(user, userProfile, voteItems) {
+                if (!user || !userProfile || !voteItems || !angular.isArray(voteItems)) {
                     throw new Error('Invalid arguments');
                 }
+
                 // Order voteSet by descending points value
-                voteSet.sort(function (item1, item2) {
+                voteItems.sort(function (item1, item2) {
                     return item2.points - item1.points;
                 });
+
                 var userVote = {
                     userInfo: {
                         displayName: user.displayName || 'Anonymous',
@@ -452,43 +486,49 @@
                     date: +moment().utc(),
                     voteItems: []
                 };
-                voteSet.forEach(function (item) {
+
+                voteItems.forEach(function (item) {
                     userVote.voteItems[item.id] = item;
                 });
+
                 return userVote;
             }
 
             var UserVoteFactory = $FirebaseObject.$extendFactory({
-                   isEmpty: function() {
-                       if(!this.voteItems || !angular.isObject(this.voteItems)) {
-                           return true;
-                       }
-                       for(var prop in this.voteItems) {
-                           if (this.voteItems.hasOwnProperty(prop)) {
-                               return false;
-                           }
-                       }
-                       return true;
-                   }
-                });
+                isEmpty: function () {
+                    if (!this.voteItems || !angular.isObject(this.voteItems)) {
+                        return true;
+                    }
+                    for (var prop in this.voteItems) {
+                        if (this.voteItems.hasOwnProperty(prop)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            });
 
             return {
 
                 sync: {
                     votes: fbutil.syncArray('votes'),
+
                     vote: function (voteId) {
                         if (!voteId) {
                             throw new Error('voteId argument is not valid');
                         }
                         return fbutil.syncObject('votes/' + voteId);
                     },
+
                     voteResult: function (voteId) {
                         if (!voteId) {
                             throw new Error('voteId argument is not valid');
                         }
                         return fbutil.syncArray('voteResults/' + voteId);
                     },
+
                     userVotes: fbutil.syncArray('userVotes'),
+
                     userVote: function (userId, voteId) {
                         if (!userId) {
                             throw new Error('userId argument is not valid');
@@ -532,11 +572,11 @@
                     var refUserVote = fbutil.fb('userVotes/' + user.id),
                         refVoteResult = fbutil.fb('voteResults/' + voteId),
                         syncVoteCounters = counters.voteCounters(voteId),
-                        data = createVoteResult(user, userProfile, voteSet);
+                        userVoteResult = createUserVoteResult(user, userProfile, voteSet);
 
                     return $q.all([
-                        refUserVote.$set(voteId, data),
-                        refVoteResult.$set(user.id, data)
+                        refUserVote.$set(voteId, userVoteResult),
+                        refVoteResult.$set(user.id, userVoteResult)
                     ]).then(function () {
                         syncVoteCounters.plusSaved();
                         activities.publish('uservotesaved', user, userProfile);
@@ -564,7 +604,20 @@
                     var selection = new Dictionary(limit);
                     selection.voteId = voteId;
                     return selection;
+                },
+
+                isVoteOpened: function (vote) {
+                    if (!vote || !angular.isObject(vote)) {
+                        return false;
+                    }
+
+                    var now = moment(),
+                        start = vote.dateStart ? moment(vote.dateStart) : moment(0),
+                        end = vote.dateEnd ? moment(vote.dateEnd) : moment('2020-01-01');
+
+                    return now.isAfter(start, 'min') && now.isBefore(end, 'min');
                 }
+
             };
 
         }])

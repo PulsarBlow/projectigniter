@@ -1,0 +1,20 @@
+<section data-ng-repeat="vote in votes | activeVotes">
+    <div class="panel panel-clean ui-ribbon-container ui-ribbon-primary">
+        <div class="ui-ribbon-wrapper">
+            <div class="ui-ribbon">
+                En cours
+            </div>
+        </div>
+        <div class="panel-heading clearfix">
+            <h3 class="ng-binding">{{vote.title}}</h3>
+            <p>{{vote.description}}</p>
+        </div>
+        <div class="panel-body clearfix">
+            <progressbar  value="34" type="info"><span>Il reste 4 jours</span></progressbar>
+            <div class="btn-group pull-right">
+                <button class="btn btn-success" type="button" ui-sref="app.vote({id: vote.id})">Voir les résultats</button>
+            </div>
+        </div>
+
+    </div>
+</section>
