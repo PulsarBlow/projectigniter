@@ -616,8 +616,19 @@
                         end = vote.dateEnd ? moment(vote.dateEnd) : moment('2020-01-01');
 
                     return now.isAfter(start, 'min') && now.isBefore(end, 'min');
-                }
+                },
 
+                getVoteProgress: function(vote) {
+                    if(!angular.isObject(vote) || !vote.dateEnd) {
+                        return 0;
+                    }
+                    var momentStart = vote.dateStart ? moment(vote.dateStart) : moment(),
+                        momentEnd = vote.dateEnd ? moment(vote.dateEnd) : moment("2020-01-01"),
+                        momentNow = moment(),
+                        msInterval = momentEnd.diff(momentStart),
+                        result = Math.round((momentEnd.diff(momentNow) * 100) / msInterval);
+                    return result > 0 ? result : 0;
+                }
             };
 
         }])

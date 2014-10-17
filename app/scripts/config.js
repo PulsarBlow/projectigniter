@@ -3,7 +3,11 @@
     angular.module('app.config', [])
 
     // Firebase data URL
-    .constant('FBURL', 'https://burning-inferno-9731.firebaseio.com')
+    .value('FBURL', 'https://projectigniter.firebaseio.com')
+    // Overrides during development
+    // @if DEBUG
+    .value('FBURL', 'https://burning-inferno-9731.firebaseio.com')
+    // @endif
 
     .constant('MAX_FAVORITES', 5)
 
