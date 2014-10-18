@@ -323,9 +323,9 @@ module.exports = function (grunt) {
                         src: [
                             '*.{ico,png,txt}',
                             '.htaccess',
-                            '*.html',
-                            'views/{,*/}*.html',
-                            'views/{,*/}*.html',
+                            '**/*.html',
+                            //'views/{,*/}*.html',
+                            //'views/{,*/}*.html',
                             'images/{,*/}*.{webp}',
                             'fonts/*'
                         ]
@@ -363,7 +363,7 @@ module.exports = function (grunt) {
                       dot: true,
                       cwd: '<%= yeoman.dist %>',
                       dest: '<%= yeoman.iis %>',
-                      src: '<%= yeoman.dist %>'
+                      src: '**/*.*'
                   }
               ]
             }
@@ -444,6 +444,7 @@ module.exports = function (grunt) {
     grunt.registerTask('iis', [
        'clean:iis',
         'build',
+        'copy:iis'
     ]);
 
     grunt.registerTask('default', [

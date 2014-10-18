@@ -74,5 +74,6 @@ com_crashlytics_export_strings.xml
 
 # Bower
 dist
+dist_iis
 .tmp
 bower_components
