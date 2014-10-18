@@ -18,7 +18,8 @@ module.exports = function (grunt) {
     // Configurable paths for the application
     var appConfig = {
         app: require('./bower.json').appPath || 'app',
-        dist: 'dist'
+        dist: 'dist',
+        iis: 'dist_iis'
     };
 
     var modRewrite = require('connect-modrewrite');
@@ -107,7 +108,7 @@ module.exports = function (grunt) {
             },
             dist: {
                 options: {
-                    open: true,
+                    open: false,
                     base: '<%= yeoman.dist %>'
                 }
             }
@@ -147,7 +148,18 @@ module.exports = function (grunt) {
                     }
                 ]
             },
-            server: '.tmp'
+            server: '.tmp',
+            iis: {
+                files: [
+                    {
+                        dot: true,
+                        src: [
+                            '<%= yeoman.iis %>/{,*/}*',
+                            '!<%= yeoman.iis %>/*.config'
+                        ]
+                    }
+                ]
+            }
         },
 
         // Add vendor prefixed styles
@@ -214,32 +226,6 @@ module.exports = function (grunt) {
                 assetsDirs: ['<%= yeoman.dist %>', '<%= yeoman.dist %>/images']
             }
         },
-
-        // The following *-min tasks will produce minified files in the dist folder
-        // By default, your `index.html`'s <!-- Usemin block --> will take care of
-        // minification. These next options are pre-configured if you do not wish
-        // to use the Usemin blocks.
-        // cssmin: {
-        //   dist: {
-        //     files: {
-        //       '<%= yeoman.dist %>/styles/main.css': [
-        //         '.tmp/styles/{,*/}*.css'
-        //       ]
-        //     }
-        //   }
-        // },
-        // uglify: {
-        //   dist: {
-        //     files: {
-        //       '<%= yeoman.dist %>/scripts/scripts.js': [
-        //         '<%= yeoman.dist %>/scripts/scripts.js'
-        //       ]
-        //     }
-        //   }
-        // },
-        // concat: {
-        //   dist: {}
-        // },
 
         imagemin: {
             dist: {
@@ -339,6 +325,7 @@ module.exports = function (grunt) {
                             '.htaccess',
                             '*.html',
                             'views/{,*/}*.html',
+                            'views/{,*/}*.html',
                             'images/{,*/}*.{webp}',
                             'fonts/*'
                         ]
@@ -368,6 +355,17 @@ module.exports = function (grunt) {
                 cwd: '<%= yeoman.app %>/styles',
                 dest: '.tmp/styles/',
                 src: '{,*/}*.css'
+            },
+            iis: {
+              files: [
+                  {
+                      expand: true,
+                      dot: true,
+                      cwd: '<%= yeoman.dist %>',
+                      dest: '<%= yeoman.iis %>',
+                      src: '<%= yeoman.dist %>'
+                  }
+              ]
             }
         },
 
@@ -441,6 +439,11 @@ module.exports = function (grunt) {
         'filerev',
         'usemin',
         'htmlmin'
+    ]);
+
+    grunt.registerTask('iis', [
+       'clean:iis',
+        'build',
     ]);
 
     grunt.registerTask('default', [
