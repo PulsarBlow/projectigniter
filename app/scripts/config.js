@@ -1,6 +1,6 @@
 (function(angular) {
     'use strict';
-    angular.module('app.config', [])
+    angular.module('app.config', ['ui.bootstrap'])
 
     // Firebase data URL
     .value('FBURL', 'https://projectigniter.firebaseio.com')
@@ -19,5 +19,29 @@
 
     .constant('ACTIVITY_LIMIT', 50)
 
+    .config(['$compileProvider', '$logProvider', function ($compileProvider, $logProvider) {
+        $compileProvider.debugInfoEnabled(false);
+        $logProvider.debugEnabled(false);
+        // @if DEBUG
+        $compileProvider.debugInfoEnabled(true);
+        $logProvider.debugEnabled(true);
+        // @endif
+    }])
+
+    // Config tooltips
+    .config(['$tooltipProvider', function($tooltipProvider){
+        $tooltipProvider.options({appendToBody: true, popupDelay: 250});
+    }])
+
+    .run(['$log', '$rootScope', '$window', 'activityService', function($log, $rootScope, $window, activityService) {
+        $log.debug('Running app'); //debug
+        $window.moment.locale('fr');
+        $rootScope.$on('activity:trigger', function(event, args) {
+            $log.debug('activity event received : %s', args.name);
+            if(activityService.exist(args.name)) {
+                //activityService.publish(arg.name, user, userProfile);
+            }
+        });
+    }])
     ;
 })(window.angular || {});
