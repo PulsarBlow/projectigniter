@@ -190,9 +190,8 @@
                 $log.debug('syncVote:watch', {syncVote: syncVote, scopeVote: $scope.vote});
                 selection.changeLimit(syncVote.options.maxItems);
             }, this);
-            syncVoteResult.$watch(function(){
-                $scope.voteResult = buildVoteResult(syncVoteResult);
-            });
+
+            $scope.voteSummary = voteService.sync.voteSummary($stateParams.id);
 
             // userVote is resolved in route.js
             $scope.userVote = userVote;

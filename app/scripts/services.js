@@ -465,8 +465,78 @@
             };
         }])
 
-        .factory('voteService', ['$q', '$FirebaseObject', '$FirebaseArray', 'fbutil', 'counterService', 'activityService', function ($q, $FirebaseObject, $FirebaseArray, fbutil, counters, activities) {
+        .factory('voteService', ['$log', '$q', '$FirebaseObject', '$FirebaseArray', 'fbutil', 'counterService', 'activityService', function ($log, $q, $FirebaseObject, $FirebaseArray, fbutil, counters, activities) {
 
+            function VoteSummary(votes, voters, totalPoints) {
+                this.votes = votes || [];
+                this.voters = voters || [];
+                this.totalPoints = totalPoints || 0;
+            }
+            function createSummary(voteResult) {
+
+                if (!angular.isObject(voteResult)) {
+                    return new VoteSummary();
+                }
+
+                var allVotesMap = {},
+                    allVotes = [],
+                    allVotersMap = {},
+                    allVoters = [],
+                    totalPoints = 0;
+
+                angular.forEach(voteResult, function (vote) {
+                    if (!angular.isObject(vote) || !angular.isObject(vote.voteItems)) {
+                        return;
+                    }
+
+                    var voteItems = vote.voteItems,
+                        currentVoter = vote.userInfo;
+
+                    angular.forEach(vote.voteItems, function (voteItem) {
+
+                        allVotesMap[voteItem.id] = allVotesMap[voteItem.id] || {
+                            id: voteItem.id,
+                            value: voteItem.value,
+                            points: 0,
+                            num: 0,
+                            voters: []
+                        };
+
+                        allVotesMap[voteItem.id].points += voteItem.points;
+                        allVotesMap[voteItem.id].num += 1;
+                        totalPoints += voteItem.points;
+                        allVotesMap[voteItem.id].voters.push({
+                            displayName: currentVoter.displayName,
+                            pageUrl: currentVoter.pageUrl,
+                            pictureUrl: currentVoter.pictureUrl,
+                            points: voteItem.points
+                        });
+                    });
+                    allVotersMap[currentVoter.displayName] = allVotersMap[currentVoter.displayName] || currentVoter;
+                });
+
+                $log.debug('voteSummaryService:computeResult:allVotesMap', allVotesMap);
+                angular.forEach(allVotesMap, function (vote) {
+                    allVotes.push(vote);
+                });
+                // sort by points descending then by total number of voters
+                allVotes.sort(function (item1, item2) {
+                    var result = item2.points - item1.points;
+                    if (result !== 0) {
+                        return result;
+                    }
+                    return item2.voters.length - item1.voters.length;
+                });
+
+                $log.debug('voteSummaryService:computeResult:allVotersMap', allVotersMap);
+                angular.forEach(allVotersMap, function (voter) {
+                    allVoters.push(voter);
+                });
+
+                var summary = new VoteSummary(allVotes, allVoters, totalPoints);
+                $log.debug('voteSummaryService:computeResult:summary', summary);
+                return summary;
+            }
             function createUserVoteResult(user, userProfile, voteItems) {
                 if (!user || !userProfile || !voteItems || !angular.isArray(voteItems)) {
                     throw new Error('Invalid arguments');
@@ -539,6 +609,46 @@
                         return fbutil.fb('userVotes/' + userId + '/' + voteId, {
                             objectFactory: UserVoteFactory
                         }).$asObject();
+                    },
+
+                    voteSummary: function(voteId) {
+                        if (!voteId) {
+                            throw new Error('voteId argument is not valid');
+                        }
+
+                        var summary = new VoteSummary(), SyncFactory = $FirebaseObject.$extendFactory({
+                                toJSON: function () {
+                                    // This will filter out any firebase properties
+                                    var json = {};
+                                    angular.forEach(this, function (item, key) {
+                                        var skey = S(key.toString());
+                                        if (skey.startsWith("$") || skey.startsWith("$$")) {
+                                            return;
+                                        }
+                                        json[key] = item;
+                                    });
+                                    return json;
+                                }
+                            }),
+                            sync = fbutil.syncObject('voteResults/' + voteId, {objectFactory: SyncFactory});
+                        sync.$watch(function () {
+                            $log.debug("voteSummaryService:syncWatch", {voteId: voteId, args: arguments});
+                            var result = createSummary(sync.toJSON());
+
+                            summary.votes.splice(0, summary.votes.length);
+                            angular.forEach(result.votes, function(vote){
+                                summary.votes.push(vote);
+                            });
+
+                            summary.voters.splice(0, summary.voters.length);
+                            angular.forEach(result.voters, function(voter){
+                                summary.voters.push(voter);
+                            });
+
+                            summary.totalPoints = result.totalPoints;
+                        });
+
+                        return summary;
                     }
                 },
 
@@ -618,8 +728,8 @@
                     return now.isAfter(start, 'min') && now.isBefore(end, 'min');
                 },
 
-                getVoteProgress: function(vote) {
-                    if(!angular.isObject(vote) || !vote.dateEnd) {
+                getVoteProgress: function (vote) {
+                    if (!angular.isObject(vote) || !vote.dateEnd) {
                         return 0;
                     }
                     var momentStart = vote.dateStart ? moment(vote.dateStart) : moment(),
