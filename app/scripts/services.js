@@ -465,7 +465,7 @@
             };
         }])
 
-        .factory('voteService', ['$log', '$q', '$FirebaseObject', '$FirebaseArray', 'fbutil', 'counterService', 'activityService', function ($log, $q, $FirebaseObject, $FirebaseArray, fbutil, counters, activities) {
+        .factory('voteService', ['$log', '$q', '$FirebaseObject', '$FirebaseArray', 'fbutil', 'ANONYMOUS_ID', 'counterService', 'activityService', function ($log, $q, $FirebaseObject, $FirebaseArray, fbutil, ANONYMOUS_ID, counters, activities) {
 
             function VoteSummary(votes, voters, totalPoints) {
                 this.votes = votes || [];
@@ -512,13 +512,15 @@
                             points: voteItem.points
                         });
                     });
-                    allVotersMap[currentVoter.displayName] = allVotersMap[currentVoter.displayName] || currentVoter;
+                    allVotersMap[currentVoter.id] = allVotersMap[currentVoter.id] || currentVoter;
                 });
 
                 $log.debug('voteSummaryService:computeResult:allVotesMap', allVotesMap);
+
                 angular.forEach(allVotesMap, function (vote) {
                     allVotes.push(vote);
                 });
+
                 // sort by points descending then by total number of voters
                 allVotes.sort(function (item1, item2) {
                     var result = item2.points - item1.points;
@@ -549,6 +551,7 @@
 
                 var userVote = {
                     userInfo: {
+                        id: user.id || ANONYMOUS_ID,
                         displayName: user.displayName || 'Anonymous',
                         pageUrl: userProfile.pageUrl || null,
                         pictureUrl: userProfile.pictureUrl || null

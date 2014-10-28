@@ -99,7 +99,7 @@
                   $log.warn('Cancelling viewDetails', {vote: vote});
                   return;
               }
-                $state.go('app.vote', {id: vote.id});
+                $state.go('app.vote.default', {id: vote.id});
             };
 
             function isOpened(vote) {
@@ -115,70 +115,6 @@
 
             $log.debug('VoteController instantiated', {stateParams: $stateParams});
 
-            function buildVoteResult(votes) {
-
-                if(!angular.isArray(votes) || !votes.length) {
-                    return {
-                        data: [],
-                        voters: [],
-                        totalPoints: 0
-                    };
-                }
-
-                var allVotesMap = {},
-                    allVotes = [],
-                    allVotersMap = {},
-                    allVoters = [],
-                    totalPoints = 0;
-
-                votes.forEach(function(item) {
-                    if(!angular.isObject(item) || !angular.isObject(item.voteItems))  { return; }
-
-                    var voteItems = item.voteItems,
-                        currentVoter = item.userInfo;
-
-                    for (var key in voteItems) {
-                        allVotesMap[voteItems[key].id] = allVotesMap[voteItems[key].id] || { id: voteItems[key].id, value: voteItems[key].value, points: 0, num: 0, voters: []};
-                        allVotesMap[voteItems[key].id].points += voteItems[key].points;
-                        allVotesMap[voteItems[key].id].num += 1;
-                        totalPoints += voteItems[key].points;
-                        allVotesMap[voteItems[key].id].voters.push({
-                            displayName: currentVoter.displayName,
-                            pageUrl: currentVoter.pageUrl,
-                            pictureUrl: currentVoter.pictureUrl,
-                            points: voteItems[key].points
-                        });
-                    }
-
-                    if(!(currentVoter.displayName in allVotersMap)) {
-                        allVotersMap[currentVoter.displayName] = currentVoter;
-                    }
-                });
-                $log.debug('buildVoteResult:nameMap', allVotesMap);
-                var key;
-                for (key in allVotesMap) {
-                    allVotes.push(allVotesMap[key]);
-                }
-                // sort by points descending then by total number of voters
-                allVotes.sort(function(item1, item2){
-                    var result = item2.points - item1.points;
-                    if(result !== 0) { return result; }
-                    return item2.voters.length - item1.voters.length;
-                });
-
-                $log.debug('buildVoteResult:voterMap', allVotersMap);
-                for(key in allVotersMap){
-                    allVoters.push(allVotersMap[key]);
-                }
-                var result = {
-                    allVotes: allVotes,
-                    allVoters: allVoters,
-                    totalPoints: totalPoints
-                };
-                $log.debug('buildVoteResult:result', result);
-                return result;
-            }
-
             var syncVote = voteService.sync.vote($stateParams.id),
                 syncVoteResult = voteService.sync.voteResult($stateParams.id),
                 selection = voteService.createSelection($stateParams.id),
@@ -190,6 +126,8 @@
                 $log.debug('syncVote:watch', {syncVote: syncVote, scopeVote: $scope.vote});
                 selection.changeLimit(syncVote.options.maxItems);
             }, this);
+
+            $scope.voteId = $stateParams.id;
 
             $scope.voteSummary = voteService.sync.voteSummary($stateParams.id);
 
@@ -234,11 +172,6 @@
                 axis: 'y'
             };
 
-            $scope.tabs = [
-                {title: 'Résultat du vote', view: 'views/pages/vote/_results.html'},
-                {title: 'Mon vote', view: 'views/pages/vote/_myvote.html'}
-            ];
-
             $scope.getPoints = function (index) {
                 return Math.pow(2, selection.limit - index);
             };
@@ -272,6 +205,25 @@
 
         }])
 
+        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', function($log, $state, $stateParams, $scope){
+            $log.debug('VoteImproveController instantiated', {stateParams: $stateParams});
+
+            function Name(data) {
+                if(!data) { data = {}; }
+                this.value = data.value || null;
+                this.isComOk = data.isComOk || null;
+                this.isTwitterOk = data.isTwitterOk || null;
+                this.isFacebookOk = data.isFacebookOk || null;
+            }
+
+            $scope.names = [];
+
+            $scope.validate = function(newName) {
+
+            };
+
+        }])
+
     ;
-    
+
 })(window.angular || {});

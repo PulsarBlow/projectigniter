@@ -1,0 +1,25 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong>Proposer un ou plusieurs noms</strong>
+    </div>
+    <div class="panel-body">
+        <div class="callout callout-info">
+            <h4>Noms valides</h4>
+            <p>Pour être validé un nom doit être <i>obligatoirement</i> disponible en extension .com et <i>optionnellement</i> sur Twitter et Facebook.<br />Le formulaire effectuera la vérification automatiquement et vous préviendra si le nom n'est pas valide.</p>
+        </div>
+        <form role="form">
+            <div class="form-group">
+                <label for="nameProposal">Nom proposé</label>
+                <input type="text" class="form-control" id="nameProposal" placeholder="Nom proposé" data-ng-model="newName">
+            </div>
+            <button type="submit" class="btn btn-primary btn-w-md" data-ng-click="validate(newName)">Valider</button>
+        </form>
+
+        <div data-ng-if="names.length">
+            <h4>Récapitulatif de vos propositions</h4>
+        </div>
+        <div data-ng-if="!names.length">
+            <h4>Vous n'avez encore rien proposé</h4>
+        </div>
+    </div>
+</div>

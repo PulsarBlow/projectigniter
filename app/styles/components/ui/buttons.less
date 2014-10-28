@@ -4,7 +4,7 @@
 // mixin
 .button-line-variant(@color, @background, @border) {
     color: @text-color;
-    background-color: transparent; 
+    background-color: transparent;
     border-color: @border;
 
     &:hover,
@@ -21,7 +21,6 @@
         }
     }
 }
-
 .button-icon-variant(@size) {
     height: @size;
     width: @size;
@@ -31,9 +30,8 @@
         &.btn-icon-thin {
             line-height: @size - 2px;
         }
-    }    
+    }
 }
-
 .social-button-variant(@background, @border) {
     color: @reverse;
     background-color: @background;
@@ -42,8 +40,8 @@
         color: @reverse;
         text-decoration: none;
         background-color: darken(@background, 8%);
-        border-color: darken(@border, 12%)        
-    }    
+        border-color: darken(@border, 12%)
+    }
 }
 
 // add to default button
@@ -77,7 +75,7 @@
     .button-line-variant(@btn-dark-color, @btn-dark-bg, @btn-dark-border);
 }
 
-// 
+//
 .btn-direction {
     position: relative;
     border: 0;
@@ -238,7 +236,7 @@
         &:before {
             border-bottom: @btn_arrow_width solid darken(@btn-default-bg, 10%);
         }
-    }  
+    }
 
     // Color
     &.btn-primary {
@@ -290,7 +288,7 @@
                 border-bottom: @btn_arrow_width solid darken(@btn-danger-bg, 10%);
             }
         }
-    }  
+    }
 }
 .btn-down {
     &:before {
@@ -307,7 +305,7 @@
         &:before {
             border-top: @btn_arrow_width solid darken(@btn-default-bg, 10%);
         }
-    }  
+    }
 
     // Color
     &.btn-primary {
@@ -359,7 +357,7 @@
                 border-top: @btn_arrow_width solid darken(@btn-danger-bg, 10%);
             }
         }
-    }  
+    }
 }
 
 //
@@ -368,13 +366,13 @@
 .btn-w-md { min-width: 120px; }
 .btn-w-lg { min-width: 150px; }
 
-// 
+//
 .btn-round { border-radius: 2em; }
 .btn-gap { margin: 5px; }
 .btn-gap-h { margin: 0 5px; }
 .btn-gap-v { margin: 0 0 5px; }
 
-// 
+//
 .btn-icon {
     display: inline-block;
     text-align: center;
@@ -402,7 +400,7 @@
         color: @reverse;
     }
 
-    // 
+    //
     &.btn-default-light {
         color: #bbb;
         border: 2px solid #bbb;
@@ -440,7 +438,7 @@
     &.btn-danger {
         color: @brand-danger;
         border-color: @brand-danger;
-    }  
+    }
 }
 .btn-icon-round {
     border-radius: 50%;

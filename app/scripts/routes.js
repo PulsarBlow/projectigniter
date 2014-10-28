@@ -101,7 +101,8 @@
                 })
 
                 .state('app.vote', {
-                    url: '/vote/:id',
+                    abstract: true,
+                    url:'/vote/:id',
                     templateUrl: 'views/pages/vote.html',
                     controller: 'VoteController',
                     resolve: {
@@ -127,13 +128,33 @@
                             return dfd.promise;
                         }
                     }
-                });
+                })
+
+                .state('app.vote.default', {
+                    url: '',
+                    controller: 'VoteController',
+                    templateUrl: 'views/pages/vote/default.html'
+                })
+
+                .state('app.vote.edit', {
+                    url: '/edit',
+                    templateUrl: 'views/pages/vote/edit.html',
+                    controller: 'VoteController'
+                })
+
+                .state('app.vote.improve', {
+                    url: '/improve',
+                    templateUrl: 'views/pages/vote/improve.html',
+                    controller: 'VoteImproveController'
+                })
+
+            ;
 
         }])
 
         .run(['$log', '$location', '$rootScope', '$state', 'simpleLogin', 'activityService', 'loginRedirectPath', function($log, $location, $rootScope, $state, simpleLogin, activityService, loginRedirectPath) {
 
-            var isAuthenticated = false, homeUrl = '/', returnUrl = null, lastUserLoginInfo;
+            var isAuthenticated = false, homeUrl = '/vote/001-project-name/improve', returnUrl = null, lastUserLoginInfo;
 
             $log.debug('app.routes:run', {
                 rootScope: $rootScope,
