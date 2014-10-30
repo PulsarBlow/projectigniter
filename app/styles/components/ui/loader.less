@@ -173,3 +173,44 @@
     }
   }
 }
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.clock {
+
+    // Variables
+    @clock_r: 12px;
+    @clock_line: 2px;
+    @clock_color: #ccc;
+    @clock_t: 2000ms;
+
+    width: @clock_r * 2;
+    height: @clock_r * 2;
+    background-color: rgba(0, 0, 0, 0);
+    box-shadow: inset 0px 0px 0px @clock_line @clock_color;
+    border-radius: 50%;
+    position: relative;
+
+    &:after, &:before {
+        position: absolute;
+        content: "";
+        transform-origin: (@clock_line / 2) (@clock_line / 2);
+        background-color: @clock_color;
+        height: @clock_line;
+        top: @clock_r - (@clock_line / 2);
+        left: @clock_r - (@clock_line / 2);
+    }
+
+    &:before {
+        width: @clock_r / 6 * 5;
+        animation: spin @clock_t linear infinite;
+    }
+
+    &:after {
+        width: @clock_r / 3 * 2;
+        animation: spin (@clock_t * 4) linear infinite;
+    }
+}

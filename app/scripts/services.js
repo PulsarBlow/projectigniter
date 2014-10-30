@@ -791,6 +791,46 @@
             };
 
         }])
+
+        .factory('nameCheckService', ['$log', '$q', '$http', function($log, $q, $http){
+
+            function NameCheck(data) {
+                this.id = data.id;
+                this.name = data.name;
+                this.query = data.query;
+                this.dateUtc = data.dateUtc ? moment(data.dateUtc) : moment();
+                this.domains = data.domains || [];
+                this.socialNetworks = data.socialNetworks || [];
+            }
+            NameCheck.prototype = {
+                isValid: function() {
+                    return this.socialNetworks && this.socialNetworks.twitter === true &&
+                            this.domains && this.domains.com && this.domains.com === true;
+                }
+            };
+
+            return {
+                check: function(name) {
+                    var dfd = $q.defer();
+                    if(!name) {
+                        dfd.reject();
+                    }
+                    $http.get('https://namecheck.azurewebsites.net/api/namechecks/' + name, {
+                    //$http.get('http://localhost:19928/api/namechecks/' + name, {
+                        cache: false,
+                        responseType: 'json'
+                    })
+                        .success(function(data, status, headers, config){
+                            dfd.resolve(new NameCheck(data));
+                        })
+                        .error(function(data, status, headers, config){
+                            dfd.reject();
+                        });
+                    return dfd.promise;
+                }
+            };
+
+        }])
     ;
 
     function Dictionary(limit) {

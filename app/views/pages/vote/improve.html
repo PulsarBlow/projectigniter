@@ -5,20 +5,97 @@
     <div class="panel-body">
         <div class="callout callout-info">
             <h4>Noms valides</h4>
-            <p>Pour être validé un nom doit être <i>obligatoirement</i> disponible en extension .com et <i>optionnellement</i> sur Twitter et Facebook.<br />Le formulaire effectuera la vérification automatiquement et vous préviendra si le nom n'est pas valide.</p>
+            <p>Pour être validé un nom doit être <i>obligatoirement</i> disponible en extension .com et sur Twitter.<br />Le formulaire effectuera la vérification automatiquement et vous préviendra si le nom n'est pas valide.</p>
         </div>
         <form role="form">
             <div class="form-group">
                 <label for="nameProposal">Nom proposé</label>
                 <input type="text" class="form-control" id="nameProposal" placeholder="Nom proposé" data-ng-model="newName">
             </div>
-            <button type="submit" class="btn btn-primary btn-w-md" data-ng-click="validate(newName)">Valider</button>
-        </form>
+            <div class="clearfix">
+                <button type="submit" class="btn btn-primary btn-w-md pull-left" data-ng-disabled="checkInProgress" data-ng-click="validate(newName)">Valider</button>
+                <div data-ng-show="checkInProgress" class="animate-fade clearfix" style="display: inline-block">
+                    <div class="pull-left" style="padding-top:8px;margin-left: 10px;color:#ccc;">
+                        Validation en cours ...
+                    </div>
+                    <div class="pull-left" style="padding-top:6px;margin-left: 10px;">
+                        <div class="clock"></div>
+                    </div>
+                </div>
 
-        <div data-ng-if="names.length">
-            <h4>Récapitulatif de vos propositions</h4>
+            </div>
+
+        </form>
+        <div data-ng-if="nameChecks.all.length">
+            <h4>Propositions valides</h4>
+            <div data-ng-show="nameChecks.valid.length" class="animate-fade">
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Nom proposé</th>
+                        <th>Twitter</th>
+                        <th>Domaine .com</th>
+                        <th>Domaine .net</th>
+                        <th>Domaine .org</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="item in nameChecks.valid" class="{{item.isValid() ? 'ok' : 'ko'}} animate-repeat-stack">
+                        <td>{{item.name}}</td>
+                        <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> @{{item.query}}
+                        </td>
+                        <td class="{{item.domains.com ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.com
+                        </td>
+                        <td class="{{item.domains.net ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.net
+                        </td>
+                        <td class="{{item.domains.org ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.org
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-lg btn-success" data-ng-disabled="checkInProgress" data-ng-click="submit()">Soumettre vos propositions</button>
+            </div>
+            <div data-ng-show="!nameChecks.valid.length" class="animate-fade alert alert-warning">
+                Aucune de vos proposition n'est valide. Un proposition n'est valide que si le nom est disponible pour le domaine .com ainsi que sur Twitter.
+            </div>
+
+            <h4>Propositions non valides</h4>
+            <div data-ng-show="nameChecks.notValid.length" class="animate-fade">
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Nom proposé</th>
+                        <th>Twitter</th>
+                        <th>Domaine .com</th>
+                        <th>Domaine .net</th>
+                        <th>Domaine .org</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="item in nameChecks.notValid" class="{{item.isValid() ? 'ok' : 'ko'}} animate-repeat-stack">
+                        <td>{{item.name}}</td>
+                        <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> @{{item.query}}
+                        </td>
+                        <td class="{{item.domains.com ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.com
+                        </td>
+                        <td class="{{item.domains.net ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.net
+                        </td>
+                        <td class="{{item.domains.org ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.org
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div data-ng-if="!names.length">
+        <div data-ng-if="!nameChecks.all.length">
             <h4>Vous n'avez encore rien proposé</h4>
         </div>
     </div>

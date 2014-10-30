@@ -205,23 +205,36 @@
 
         }])
 
-        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', function($log, $state, $stateParams, $scope){
+        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', function($log, $state, $stateParams, $scope, nameCheckService){
             $log.debug('VoteImproveController instantiated', {stateParams: $stateParams});
 
-            function Name(data) {
-                if(!data) { data = {}; }
-                this.value = data.value || null;
-                this.isComOk = data.isComOk || null;
-                this.isTwitterOk = data.isTwitterOk || null;
-                this.isFacebookOk = data.isFacebookOk || null;
-            }
-
-            $scope.names = [];
+            $scope.nameChecks = {
+              all: [], valid: [], notValid: []
+            };
+            $scope.checkInProgress = false;
 
             $scope.validate = function(newName) {
+                $log.debug('VoteImproveController:validate name:%s', newName);
+                $scope.checkInProgress = true;
+                nameCheckService.check(newName).then(function(nameCheck){
+                   $log.debug('VoteImproveController:validate result', nameCheck);
+                    $scope.nameChecks.all.push(nameCheck);
+                    if(nameCheck.isValid()) {
+                        $scope.nameChecks.valid.push(nameCheck);
+                    } else {
+                        $scope.nameChecks.notValid.push(nameCheck);
+                    }
+                    $scope.newName = null;
+                }, function() {
 
+                }).finally(function(){
+                    $scope.checkInProgress = false;
+                });
             };
 
+            $scope.submit = function() {
+                $log.debug('VoteImproveController:submit', $scope.nameChecks.valid);
+            };
         }])
 
     ;

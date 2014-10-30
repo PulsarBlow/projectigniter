@@ -251,4 +251,30 @@
 
         }
     }
+
+    table {
+        tr.ok {
+            background-color: rgba(red(@brand-success), green(@brand-success), blue(@brand-success), 0.3);
+        }
+        tr.ko {
+            background-color: rgba(red(@brand-danger), green(@brand-danger), blue(@brand-danger), 0.3);
+        }
+        td.ok {
+            color: @brand-success;
+            i {
+                &:before {
+                    content: "\f058"; // fa-check-circle
+                }
+            }
+
+        }
+        td.ko {
+            color: @brand-danger;
+            i {
+                &:before {
+                    content: "\f057"; // fa-times-circle
+                }
+            }
+        }
+    }
 }
