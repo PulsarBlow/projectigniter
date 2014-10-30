@@ -235,6 +235,13 @@
             $scope.submit = function() {
                 $log.debug('VoteImproveController:submit', $scope.nameChecks.valid);
             };
+
+            $scope.reset = function() {
+                $log.debug('VoteImproveController:reset');
+                $scope.nameChecks.all = [];
+                $scope.nameChecks.valid = [];
+                $scope.nameChecks.notValid = [];
+            };
         }])
 
     ;
