@@ -288,6 +288,10 @@
                 }
             };
 
+            $scope.hoveringOver = function(value) {
+                $scope.overStar = value;
+                $scope.percent = 100 * (value / $scope.max);
+            };
         }])
 
     ;

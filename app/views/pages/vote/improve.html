@@ -11,8 +11,8 @@
             <div class="col-md-8">
                 <form name="form" role="form" novalidate>
                     <div class="form-group {{newName.$invalid ? 'has-error':''}}">
-                        <label for="nameProposal" class="sr-only">Nom proposé</label>
-                        <input type="text" class="form-control" id="nameProposal" placeholder="Nom proposé" data-ng-model="newName" required minlength="3" maxlength="100">
+                        <label for="newName" class="sr-only">Nom proposé</label>
+                        <input type="text" class="form-control" id="newName" placeholder="Nom proposé" data-ng-model="newName" required minlength="3" maxlength="100">
                     </div>
                     <div class="clearfix">
                         <button type="submit" class="btn btn-primary btn-w-md pull-left" data-ng-disabled="checkInProgress || form.$invalid" data-ng-click="validate(newName)">Valider</button>
@@ -28,9 +28,11 @@
                     </div>
 
                 </form>
+                <div class="divider"></div>
                 <div data-ng-if="nameChecks.all.length">
-                    <h4 class="text-success"><i class="fa fa-smile-o"></i> Propositions validées</h4>
+
                     <div data-ng-show="nameChecks.valid.length" class="animate-fade">
+                        <h4 class="text-success"><i class="fa fa-smile-o"></i> Propositions validées</h4>
                         <table class="table table-stripped">
                             <thead>
                             <tr>
@@ -59,8 +61,8 @@
                                     <i class="fa"></i> {{item.query}}.org
                                 </td>
                                 <td>
-                                    <progressbar class="progressbar-sm progress-rounded" value="item.getQuality()" type="getQualityType(item)"><span>{{item.getQuality()}} / 100</span></progressbar>
-
+                                    <progressbar class="" value="item.getQuality()" type="{{getQualityType(item)}}"><span>{{item.getQuality()}} / 100</span></progressbar>
+                                    <rating data-ng-model="item.getRate()" max="5" readonly="true"  state-on="'glyphicon-heart'" state-off="'glyphicon-heart-empty'"></rating>
                                 </td>
                                 <td class="actions">
                                     <button type="button" class="btn btn-xs btn-danger" data-ng-disabled="checkInProgress" data-ng-click="resetOne(item)"><i class="fa fa-remove"></i></button>
@@ -69,14 +71,15 @@
                             </tbody>
                         </table>
                     </div>
-                    <div data-ng-show="!nameChecks.valid.length" class="animate-fade">
-                        <p>Il n'y a pas de proposition validée</p>
-                    </div>
-                    <h4 class="text-danger"><i class="fa fa-frown-o"></i> Propositions non validées</h4>
-                    <div data-ng-show="!nameChecks.valid.length" class="animate-fade alert alert-warning">
-                        Aucune de vos propositions n'est validée. Un proposition n'est valide que si le nom est disponible sur Twitter <i>et</i> pour le domaine .com
-                    </div>
+
                     <div data-ng-show="nameChecks.notValid.length" class="animate-fade">
+
+                        <div data-ng-show="!nameChecks.valid.length" class="animate-fade alert alert-warning">
+                            Aucune de vos propositions n'est validée. Une proposition n'est validée que si le nom est disponible pour l'extension .com <i>et</i> sur Twitter.
+                        </div>
+
+                        <h4 class="text-danger"><i class="fa fa-frown-o"></i> Propositions non validées</h4>
+
                         <table class="table table-stripped">
                             <thead>
                             <tr>
@@ -110,9 +113,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div data-ng-show="!nameChecks.notValid.length" class="animate-fade">
-                        <p>Il n'y a pas de proposition non validée</p>
-                    </div>
+
                 </div>
             </div>
             <div class="col-md-4 animate-fade" data-ng-show="nameChecks.all.length">
