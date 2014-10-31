@@ -255,7 +255,7 @@
     table {
         td.ok {
             color: @brand-success;
-            background-color: rgba(red(@brand-success), green(@brand-success), blue(@brand-success), 0.3);
+            //background-color: rgba(red(@brand-success), green(@brand-success), blue(@brand-success), 0.3);
             i {
                 &:before {
                     content: "\f058"; // fa-check-circle
@@ -265,12 +265,15 @@
         }
         td.ko {
             color: @brand-danger;
-            background-color: rgba(red(@brand-danger), green(@brand-danger), blue(@brand-danger), 0.3);
+            //background-color: rgba(red(@brand-danger), green(@brand-danger), blue(@brand-danger), 0.3);
             i {
                 &:before {
                     content: "\f057"; // fa-times-circle
                 }
             }
+        }
+        td.actions {
+            text-align: right;
         }
     }
 }

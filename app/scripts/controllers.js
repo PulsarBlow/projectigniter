@@ -17,22 +17,22 @@
         .controller('AppController', ['$log', '$rootScope', '$scope', 'simpleLogin', 'dataSync',
             function ($log, $rootScope, $scope, simpleLogin, dataSync) {
 
-            $log.debug('AppController instantiated', {dataSync: dataSync });
+                $log.debug('AppController instantiated', {dataSync: dataSync});
 
-            dataSync.user.$bindTo($rootScope, 'user');
-            dataSync.userProfile.$bindTo($rootScope, 'userProfile');
-            dataSync.userConfig.$bindTo($rootScope, 'userConfig');
+                dataSync.user.$bindTo($rootScope, 'user');
+                dataSync.userProfile.$bindTo($rootScope, 'userProfile');
+                dataSync.userConfig.$bindTo($rootScope, 'userConfig');
 
-            // Bind to nav toggle event
-            $rootScope.$on('nav:stateChanged', function(event, args) {
-                dataSync.userConfig.navCollapsed = args.collapsed;
-                dataSync.userConfig.$save();
-            });
+                // Bind to nav toggle event
+                $rootScope.$on('nav:stateChanged', function (event, args) {
+                    dataSync.userConfig.navCollapsed = args.collapsed;
+                    dataSync.userConfig.$save();
+                });
 
-            $scope.signout = function() {
-                simpleLogin.logout();
-            };
-        }])
+                $scope.signout = function () {
+                    simpleLogin.logout();
+                };
+            }])
 
         .controller('HomeController', ['$log', '$scope', '$state', 'activityService', 'voteService', 'ACTIVITY_LIMIT', function ($log, $scope, $state, activityService, voteService, ACTIVITY_LIMIT) {
             $log.debug('HomeController instantiated');
@@ -42,29 +42,33 @@
             $scope.limit = limit;
             $scope.votes = voteService.sync.votes;
 
-            $scope.getMoment = function(value, from, hideSuffix) {
+            $scope.getMoment = function (value, from, hideSuffix) {
                 var fromMoment = from ? moment(from) : moment();
                 return moment(value).from(fromMoment, hideSuffix);
             };
-            $scope.getVoteProgress = function(vote) {
+            $scope.getVoteProgress = function (vote) {
                 return voteService.getVoteProgress(vote);
             };
 
-            $scope.like = function(id) {
+            $scope.like = function (id) {
                 activityService.like(id, $scope.user, $scope.userProfile);
             };
 
-            $scope.isMyActivity = function(activityId) {
+            $scope.isMyActivity = function (activityId) {
                 return activityId === $scope.user.id;
             };
 
-            $scope.hasLiked = function(activityLikers) {
-              if(!activityLikers) { return false; }
-              return $scope.user.id in activityLikers;
+            $scope.hasLiked = function (activityLikers) {
+                if (!activityLikers) {
+                    return false;
+                }
+                return $scope.user.id in activityLikers;
             };
 
-            $scope.goTo = function(state) {
-              if(!state) { return; }
+            $scope.goTo = function (state) {
+                if (!state) {
+                    return;
+                }
                 $state.go(state);
             };
         }])
@@ -75,15 +79,15 @@
 
             $scope.votes = voteService.sync.votes;
 
-            $scope.getStatus = function(vote) {
-                var status = { value: 'locked', label:'A venir' };
-                if(!angular.isObject(vote)) {
+            $scope.getStatus = function (vote) {
+                var status = {value: 'locked', label: 'A venir'};
+                if (!angular.isObject(vote)) {
                     return status;
                 }
-                if(vote.isLocked) {
+                if (vote.isLocked) {
 
                 }
-                else if(isOpened(vote)) {
+                else if (isOpened(vote)) {
                     status.value = 'opened';
                     status.label = 'En cours';
                 }
@@ -94,11 +98,11 @@
                 return status;
             };
 
-            $scope.viewDetails = function(vote) {
-              if(!vote || !vote.id) {
-                  $log.warn('Cancelling viewDetails', {vote: vote});
-                  return;
-              }
+            $scope.viewDetails = function (vote) {
+                if (!vote || !vote.id) {
+                    $log.warn('Cancelling viewDetails', {vote: vote});
+                    return;
+                }
                 $state.go('app.vote.default', {id: vote.id});
             };
 
@@ -122,7 +126,7 @@
 
             syncVoteCounters.$bindTo($scope, 'voteCounters');
             syncVote.$bindTo($scope, 'vote');
-            syncVote.$watch(function() {
+            syncVote.$watch(function () {
                 $log.debug('syncVote:watch', {syncVote: syncVote, scopeVote: $scope.vote});
                 selection.changeLimit(syncVote.options.maxItems);
             }, this);
@@ -134,14 +138,16 @@
             // userVote is resolved in route.js
             $scope.userVote = userVote;
 
-            $scope.getPercent = function(points) {
-                if($scope.voteResult.totalPoints === 0) { return 0;}
+            $scope.getPercent = function (points) {
+                if ($scope.voteResult.totalPoints === 0) {
+                    return 0;
+                }
                 return Math.round(points * 100 / $scope.voteResult.totalPoints);
             };
 
             $scope.selection = selection;
 
-            $scope.toggleSelection = function(item) {
+            $scope.toggleSelection = function (item) {
                 if (!item) {
                     return;
                 }
@@ -152,15 +158,15 @@
                 }
             };
 
-            $scope.showTimer = function(vote) {
-                if(!vote || !vote.dateEnd) {
+            $scope.showTimer = function (vote) {
+                if (!vote || !vote.dateEnd) {
                     return false;
                 }
                 return moment().isBefore(moment(vote.dateEnd));
             };
 
-            $scope.optinFeedback = function() {
-                if($scope.userConfig.emailOnVoteEnd) {
+            $scope.optinFeedback = function () {
+                if ($scope.userConfig.emailOnVoteEnd) {
                     notifier.success('Vous recevrez le résultat final du vote par email', 'Inscription enregistrée');
                 } else {
                     notifier.info('Vous ne recevrez pas d\'email.', 'Désinscription enregistrée');
@@ -175,7 +181,7 @@
             $scope.getPoints = function (index) {
                 return Math.pow(2, selection.limit - index);
             };
-            $scope.getMoment = function(date) {
+            $scope.getMoment = function (date) {
                 return moment(date).fromNow();
             };
 
@@ -183,65 +189,105 @@
                 var voteSet = [];
 
                 selection.forEach(function (name, index) {
-                    voteSet.push(({value: name.value, id: name.id, points: $scope.getPoints(index) }));
+                    voteSet.push(({value: name.value, id: name.id, points: $scope.getPoints(index)}));
                 });
 
-                voteService.saveUserVote(selection.voteId, voteSet, $scope.user, $scope.userProfile).then(function(){
+                voteService.saveUserVote(selection.voteId, voteSet, $scope.user, $scope.userProfile).then(function () {
                     selection.clear();
                     notifier.success('Merci de votre participation', 'Vote enregistré!');
                     //$scope.tabs[0].active = true;
-                }, function() {
+                }, function () {
                     notifier.error('L\'enregistrement du vote a échoué. Veuillez réessayer.', 'Erreur');
                 });
             };
 
-            $scope.deleteVote = function() {
-                voteService.removeUserVote($stateParams.id, $scope.user, $scope.userProfile).then(function(){
+            $scope.deleteVote = function () {
+                voteService.removeUserVote($stateParams.id, $scope.user, $scope.userProfile).then(function () {
                     notifier.info('Vous pouvez revoter.', 'Vote supprimé');
-                }, function() {
+                }, function () {
                     notifier.error('La suppression du vote a échoué. Veuillez réessayer.', 'Erreur');
                 });
             };
 
         }])
 
-        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', function($log, $state, $stateParams, $scope, nameCheckService){
+        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', function ($log, $state, $stateParams, $scope, nameCheckService) {
+
             $log.debug('VoteImproveController instantiated', {stateParams: $stateParams});
 
             $scope.nameChecks = {
-              all: [], valid: [], notValid: []
+                all: [], valid: [], notValid: []
             };
             $scope.checkInProgress = false;
 
-            $scope.validate = function(newName) {
+            $scope.validate = function (newName) {
                 $log.debug('VoteImproveController:validate name:%s', newName);
                 $scope.checkInProgress = true;
-                nameCheckService.check(newName).then(function(nameCheck){
-                   $log.debug('VoteImproveController:validate result', nameCheck);
+                nameCheckService.check(newName).then(function (nameCheck) {
+                    $log.debug('VoteImproveController:validate result', nameCheck);
                     $scope.nameChecks.all.push(nameCheck);
-                    if(nameCheck.isValid()) {
+                    if (nameCheck.isValid()) {
                         $scope.nameChecks.valid.push(nameCheck);
                     } else {
                         $scope.nameChecks.notValid.push(nameCheck);
                     }
                     $scope.newName = null;
-                }, function() {
-
-                }).finally(function(){
+                }, function (args) {
+                    $log.debug('VoteImproveController:validate failed', args);
+                }).finally(function () {
                     $scope.checkInProgress = false;
                 });
             };
 
-            $scope.submit = function() {
+            $scope.submit = function () {
                 $log.debug('VoteImproveController:submit', $scope.nameChecks.valid);
             };
 
-            $scope.reset = function() {
-                $log.debug('VoteImproveController:reset');
+            $scope.reset = function () {
                 $scope.nameChecks.all = [];
                 $scope.nameChecks.valid = [];
                 $scope.nameChecks.notValid = [];
             };
+
+            $scope.resetOne = function (item) {
+
+                function removeItemFromArray(item, array) {
+                    if(!item || !angular.isArray(array)) {
+                        return;
+                    }
+                    var indexOf = array.indexOf(item);
+                    if(indexOf === -1) { return; }
+                    array.splice(indexOf, 1);
+                }
+
+                if(!item) { return; }
+                removeItemFromArray(item, $scope.nameChecks.all);
+                if(item.isValid()) {
+                    removeItemFromArray(item, $scope.nameChecks.valid);
+                } else {
+                    removeItemFromArray(item, $scope.nameChecks.notValid);
+                }
+            };
+
+            $scope.getQualityType = function (item) {
+                if (!item || !item.quality) {
+                    return 'default';
+                }
+                ;
+                if (item.quality <= 25) {
+                    return 'danger';
+                }
+                else if (item.quality <= 50) {
+                    return 'warning';
+                }
+                else if (item.quality <= 75) {
+                    return 'info';
+                }
+                else {
+                    return 'success';
+                }
+            };
+
         }])
 
     ;

@@ -806,6 +806,38 @@
                 isValid: function() {
                     return this.socialNetworks && this.socialNetworks.twitter === true &&
                             this.domains && this.domains.com && this.domains.com === true;
+                },
+                getQuality: function() {
+                    var quality = 0;
+                    if(this.socialNetworks.twitter === true){
+                        quality += 30;
+                    }
+                    if(this.domains.com === true) {
+                        quality += 40;
+                    }
+                    if(this.domains.net === true) {
+                        quality += 15;
+                    }
+                    if(this.domains.org === true) {
+                        quality += 15;
+                    }
+                    return quality;
+                },
+                getRate: function() {
+                    var rate = 0;
+                    if(this.socialNetworks.twitter === true){
+                        rate += 30;
+                    }
+                    if(this.domains.com === true) {
+                        rate += 40;
+                    }
+                    if(this.domains.net === true) {
+                        rate += 15;
+                    }
+                    if(this.domains.org === true) {
+                        rate += 15;
+                    }
+                    return Math.round(rate / 20); // 0 to 5;
                 }
             };
 
@@ -824,7 +856,7 @@
                             dfd.resolve(new NameCheck(data));
                         })
                         .error(function(data, status, headers, config){
-                            dfd.reject();
+                            dfd.reject({data: data, status:status});
                         });
                     return dfd.promise;
                 }
