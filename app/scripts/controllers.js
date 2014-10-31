@@ -115,7 +115,7 @@
 
         }])
 
-        .controller('VoteController', ['$log', '$rootScope', '$scope', '$state', '$stateParams', 'voteService', 'counterService', 'notifier', 'userVote', function ($log, $rootScope, $scope, $state, $stateParams, voteService, counterService, notifier, userVote) {
+        .controller('VoteController', ['$log', '$rootScope', '$scope', '$state', '$stateParams', 'voteService', 'counterService', 'notifier', function ($log, $rootScope, $scope, $state, $stateParams, voteService, counterService, notifier) {
 
             $log.debug('VoteController instantiated', {stateParams: $stateParams});
 
@@ -126,17 +126,10 @@
 
             syncVoteCounters.$bindTo($scope, 'voteCounters');
             syncVote.$bindTo($scope, 'vote');
-            syncVote.$watch(function () {
-                $log.debug('syncVote:watch', {syncVote: syncVote, scopeVote: $scope.vote});
-                selection.changeLimit(syncVote.options.maxItems);
-            }, this);
 
             $scope.voteId = $stateParams.id;
 
             $scope.voteSummary = voteService.sync.voteSummary($stateParams.id);
-
-            // userVote is resolved in route.js
-            $scope.userVote = userVote;
 
             $scope.getPercent = function (points) {
                 if ($scope.voteResult.totalPoints === 0) {
@@ -145,20 +138,7 @@
                 return Math.round(points * 100 / $scope.voteResult.totalPoints);
             };
 
-            $scope.selection = selection;
-
-            $scope.toggleSelection = function (item) {
-                if (!item) {
-                    return;
-                }
-                if (selection.isFull()) {
-                    selection.remove(item);
-                } else {
-                    selection.addOrRemove(item);
-                }
-            };
-
-            $scope.showTimer = function (vote) {
+            $scope.shouldShowTimer = function (vote) {
                 if (!vote || !vote.dateEnd) {
                     return false;
                 }
@@ -173,6 +153,27 @@
                 }
             };
 
+            $scope.getMoment = function (date) {
+                return moment(date).fromNow();
+            };
+
+        }])
+
+        .controller('VoteEditController', ['$log', '$rootScope', '$scope', '$state', '$stateParams', 'voteService', 'counterService', 'notifier', 'userVote', function ($log, $rootScope, $scope, $state, $stateParams, voteService, counterService, notifier, userVote) {
+            $log.debug('VoteEditController instantiated');
+
+            var syncVote = voteService.sync.vote($stateParams.id),
+                selection = voteService.createSelection($stateParams.id);
+
+            syncVote.$bindTo($scope, 'vote');
+            syncVote.$watch(function () {
+                $log.debug('syncVote:watch', {syncVote: syncVote, scopeVote: $scope.vote});
+                selection.changeLimit(syncVote.options.maxItems);
+            }, this);
+            // userVote is resolved in route.js
+            $scope.userVote = userVote;
+            $scope.selection = selection;
+
             $scope.sortableOptions = {
                 opacity: 0.5,
                 axis: 'y'
@@ -181,8 +182,16 @@
             $scope.getPoints = function (index) {
                 return Math.pow(2, selection.limit - index);
             };
-            $scope.getMoment = function (date) {
-                return moment(date).fromNow();
+
+            $scope.toggleSelection = function (item) {
+                if (!item) {
+                    return;
+                }
+                if (selection.isFull()) {
+                    selection.remove(item);
+                } else {
+                    selection.addOrRemove(item);
+                }
             };
 
             $scope.saveVote = function () {
@@ -208,10 +217,9 @@
                     notifier.error('La suppression du vote a échoué. Veuillez réessayer.', 'Erreur');
                 });
             };
-
         }])
 
-        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', function ($log, $state, $stateParams, $scope, nameCheckService) {
+        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', 'notifier', function ($log, $state, $stateParams, $scope, nameCheckService, notifier) {
 
             $log.debug('VoteImproveController instantiated', {stateParams: $stateParams});
 
@@ -241,6 +249,8 @@
 
             $scope.submit = function () {
                 $log.debug('VoteImproveController:submit', $scope.nameChecks.valid);
+                notifier.success('Après revue positive nous les incluerons au vote.', 'Propositions envoyées');
+                $state.go('app.vote.default')
             };
 
             $scope.reset = function () {
@@ -269,29 +279,6 @@
                 }
             };
 
-            $scope.getQualityType = function (item) {
-                if (!item || !item.quality) {
-                    return 'default';
-                }
-                ;
-                if (item.quality <= 25) {
-                    return 'danger';
-                }
-                else if (item.quality <= 50) {
-                    return 'warning';
-                }
-                else if (item.quality <= 75) {
-                    return 'info';
-                }
-                else {
-                    return 'success';
-                }
-            };
-
-            $scope.hoveringOver = function(value) {
-                $scope.overStar = value;
-                $scope.percent = 100 * (value / $scope.max);
-            };
         }])
 
     ;

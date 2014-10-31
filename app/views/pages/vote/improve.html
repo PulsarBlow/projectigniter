@@ -7,147 +7,125 @@
             <h4>Noms valides</h4>
             <p>Pour être validé un nom doit être <i>obligatoirement</i> disponible en extension .com et sur Twitter.<br />Le formulaire effectuera la vérification automatiquement et vous préviendra si le nom n'est pas valide.</p>
         </div>
-        <div class="row">
-            <div class="col-md-8">
-                <form name="form" role="form" novalidate>
-                    <div class="form-group {{newName.$invalid ? 'has-error':''}}">
-                        <label for="newName" class="sr-only">Nom proposé</label>
-                        <input type="text" class="form-control" id="newName" placeholder="Nom proposé" data-ng-model="newName" required minlength="3" maxlength="100">
-                    </div>
-                    <div class="clearfix">
-                        <button type="submit" class="btn btn-primary btn-w-md pull-left" data-ng-disabled="checkInProgress || form.$invalid" data-ng-click="validate(newName)">Valider</button>
-                        <div data-ng-show="checkInProgress" class="animate-fade clearfix" style="display: inline-block">
-                            <div class="pull-left" style="padding-top:8px;margin-left: 10px;color:#ccc;">
-                                Validation en cours ...
-                            </div>
-                            <div class="pull-left" style="padding-top:6px;margin-left: 10px;">
-                                <div class="clock"></div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </form>
-                <div class="divider"></div>
-                <div data-ng-if="nameChecks.all.length">
-
-                    <div data-ng-show="nameChecks.valid.length" class="animate-fade">
-                        <h4 class="text-success"><i class="fa fa-smile-o"></i> Propositions validées</h4>
-                        <table class="table table-stripped">
-                            <thead>
-                            <tr>
-                                <th>Nom proposé</th>
-                                <th>Twitter</th>
-                                <th>Domaine .com</th>
-                                <th>Domaine .net</th>
-                                <th>Domaine .org</th>
-                                <th>Qualité globale</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr data-ng-repeat="item in nameChecks.valid" class="animate-repeat-stack">
-                                <td>{{item.name}}</td>
-                                <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> @{{item.query}}
-                                </td>
-                                <td class="{{item.domains.com ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.com
-                                </td>
-                                <td class="{{item.domains.net ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.net
-                                </td>
-                                <td class="{{item.domains.org ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.org
-                                </td>
-                                <td>
-                                    <progressbar class="" value="item.getQuality()" type="{{getQualityType(item)}}"><span>{{item.getQuality()}} / 100</span></progressbar>
-                                    <rating data-ng-model="item.getRate()" max="5" readonly="true"  state-on="'glyphicon-heart'" state-off="'glyphicon-heart-empty'"></rating>
-                                </td>
-                                <td class="actions">
-                                    <button type="button" class="btn btn-xs btn-danger" data-ng-disabled="checkInProgress" data-ng-click="resetOne(item)"><i class="fa fa-remove"></i></button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div data-ng-show="nameChecks.notValid.length" class="animate-fade">
-
-                        <div data-ng-show="!nameChecks.valid.length" class="animate-fade alert alert-warning">
-                            Aucune de vos propositions n'est validée. Une proposition n'est validée que si le nom est disponible pour l'extension .com <i>et</i> sur Twitter.
-                        </div>
-
-                        <h4 class="text-danger"><i class="fa fa-frown-o"></i> Propositions non validées</h4>
-
-                        <table class="table table-stripped">
-                            <thead>
-                            <tr>
-                                <th>Nom proposé</th>
-                                <th>Twitter</th>
-                                <th>Domaine .com</th>
-                                <th>Domaine .net</th>
-                                <th>Domaine .org</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr data-ng-repeat="item in nameChecks.notValid" class="animate-repeat-stack">
-                                <td>{{item.name}}</td>
-                                <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> @{{item.query}}
-                                </td>
-                                <td class="{{item.domains.com ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.com
-                                </td>
-                                <td class="{{item.domains.net ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.net
-                                </td>
-                                <td class="{{item.domains.org ? 'ok' : 'ko'}}">
-                                    <i class="fa"></i> {{item.query}}.org
-                                </td>
-                                <td class="actions">
-                                    <button type="button" class="btn btn-xs btn-danger" data-ng-disabled="checkInProgress" data-ng-click="resetOne(item)"><i class="fa fa-remove"></i></button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
+        <form name="form" role="form" novalidate class="form-inline">
+            <div class="form-group {{newName.$invalid ? 'has-error':''}}">
+                <label for="newName" class="sr-only">Nom proposé</label>
+                <input type="text" class="form-control" id="newName" placeholder="Nom proposé" data-ng-model="newName" required minlength="3" maxlength="100" style="min-width: 400px;">
             </div>
-            <div class="col-md-4 animate-fade" data-ng-show="nameChecks.all.length">
-                <div class="row">
-                    <div class="col-md-4 panel mini-box text-center">
-                        <div class="box-info">
-                            <p class="size-h2">{{nameChecks.all.length}}</p>
-                            <p><ng-pluralize count="nameChecks.all.length" when="{'0':'proposition', '1': 'proposition', 'other': 'propositions'}"></ng-pluralize></p>
-                        </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-w-md pull-left" data-ng-disabled="checkInProgress || form.$invalid" data-ng-click="validate(newName)">Valider</button>
+                <div data-ng-show="checkInProgress" class="animate-fade clearfix" style="display: inline-block">
+                    <div class="pull-left" style="padding-top:8px;margin-left: 10px;color:#ccc;">
+                        Validation en cours ...
                     </div>
-                    <div class="col-md-4 panel mini-box text-center text-success">
-                        <div class="box-info">
-                            <p class="size-h2">{{nameChecks.valid.length}}</p>
-                            <p><ng-pluralize count="nameChecks.valid.length" when="{'0':'validée', '1': 'validée', 'other': 'non validées'}"></ng-pluralize></p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 panel mini-box text-center text-danger">
-                        <div class="box-info">
-                            <p class="size-h2">{{nameChecks.notValid.length}}</p>
-                            <p><ng-pluralize count="nameChecks.notValid.length" when="{'0':'non validée', '1': 'non validée', 'other': 'non validées'}"></ng-pluralize></p>
-                        </div>
+                    <div class="pull-left" style="padding-top:6px;margin-left: 10px;">
+                        <div class="clock"></div>
                     </div>
                 </div>
-                <button type="button" class="animate-fade btn btn-lg btn-danger btn-block" data-ng-disabled="checkInProgress" data-ng-click="reset()">
-                    Tout supprimer
-                </button>
-                <button type="button" class="animate-fade btn btn-lg btn-success btn-block" data-ng-disabled="checkInProgress" data-ng-show="nameChecks.valid.length" data-ng-click="submit()">
-                    <ng-pluralize count="nameChecks.valid.length"
-                        when="{
+
+            </div>
+
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="animate-fade" data-ng-show="nameChecks.all.length" data-ng-disabled="checkInProgress">
+            <button type="button" class="btn btn-danger" data-ng-click="reset()"><i class="fa fa-trash"></i> Tout supprimer</button>
+            <button type="button" class="animate-fade btn btn-success" data-ng-disabled="checkInProgress" data-ng-show="nameChecks.valid.length" data-ng-click="submit()"><i class="fa fa-cloud-upload"></i>
+                <ng-pluralize count="nameChecks.valid.length"
+                              when="{
                         '0': 'Pas de proposition validée',
                         'one': 'Soumettre votre proposition validée',
                         'other': 'Soumettre vos {{nameChecks.valid.length}} propositions validées'}">
-                    </ng-pluralize></button>
-            </div>
+                </ng-pluralize></button>
         </div>
+
+        <div class="divider"></div>
+
+        <div data-ng-if="nameChecks.all.length">
+
+            <div data-ng-show="nameChecks.valid.length" class="animate-fade">
+                <h4 class="text-success"><i class="fa fa-smile-o"></i> Propositions validées</h4>
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Nom proposé</th>
+                        <th>Twitter</th>
+                        <th>Domaine .com</th>
+                        <th>Domaine .net</th>
+                        <th>Domaine .org</th>
+                        <th>Qualité globale</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="item in nameChecks.valid" class="animate-repeat-stack">
+                        <td><strong>{{item.name}}</strong></td>
+                        <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> @{{item.query}}
+                        </td>
+                        <td class="{{item.domains.com ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.com
+                        </td>
+                        <td class="{{item.domains.net ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.net
+                        </td>
+                        <td class="{{item.domains.org ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.org
+                        </td>
+                        <td class="rating">
+                            <rating data-ng-init="rate = item.getRate()" data-ng-model="rate" max="5" readonly="true"  state-on="'glyphicon-heart'" state-off="'glyphicon-heart-empty'"></rating>
+                        </td>
+                        <td class="actions">
+                            <button type="button" class="btn btn-xs btn-danger" data-ng-disabled="checkInProgress" data-ng-click="resetOne(item)" title="Supprimer cette proposition"><i class="fa fa-remove"></i></button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div data-ng-show="nameChecks.notValid.length" class="animate-fade">
+
+                <div data-ng-show="!nameChecks.valid.length" class="animate-fade alert alert-warning">
+                    Aucune de vos propositions n'est validée. Une proposition n'est validée que si le nom est disponible pour l'extension .com <i>et</i> sur Twitter.
+                </div>
+
+                <h4 class="text-danger"><i class="fa fa-frown-o"></i> Propositions non validées</h4>
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Nom proposé</th>
+                        <th>Twitter</th>
+                        <th>Domaine .com</th>
+                        <th>Domaine .net</th>
+                        <th>Domaine .org</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="item in nameChecks.notValid" class="animate-repeat-stack">
+                        <td><strong>{{item.name}}</strong></td>
+                        <td class="{{item.socialNetworks.twitter ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> @{{item.query}}
+                        </td>
+                        <td class="{{item.domains.com ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.com
+                        </td>
+                        <td class="{{item.domains.net ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.net
+                        </td>
+                        <td class="{{item.domains.org ? 'ok' : 'ko'}}">
+                            <i class="fa"></i> {{item.query}}.org
+                        </td>
+                        <td class="actions">
+                            <button type="button" class="btn btn-xs btn-danger" data-ng-disabled="checkInProgress" data-ng-click="resetOne(item)" title="Supprimer cette proposition"><i class="fa fa-remove"></i></button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <div class="divider"></div>
     </div>
 </div>

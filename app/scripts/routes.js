@@ -139,7 +139,7 @@
                 .state('app.vote.edit', {
                     url: '/edit',
                     templateUrl: 'views/pages/vote/edit.html',
-                    controller: 'VoteController'
+                    controller: 'VoteEditController'
                 })
 
                 .state('app.vote.improve', {
