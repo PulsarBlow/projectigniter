@@ -489,8 +489,7 @@
                         return;
                     }
 
-                    var voteItems = vote.voteItems,
-                        currentVoter = vote.userInfo;
+                    var currentVoter = vote.userInfo;
 
                     angular.forEach(vote.voteItems, function (voteItem) {
 
@@ -566,6 +565,38 @@
 
                 return userVote;
             }
+            function createVoteSuggestion(user, userProfile, items) {
+                if (!user || !userProfile || !items || !angular.isArray(items)) {
+                    throw new Error('Invalid arguments');
+                }
+
+                var suggestionItems = [];
+                angular.forEach(items, function(item){
+                    if(typeof item.toJSON === 'function') {
+                        suggestionItems.push(item.toJSON());
+                    } else {
+                        suggestionItems.push(angular.copy(item));
+                    }
+                });
+
+                // Order suggestion by date
+                suggestionItems.sort(function(item1, item2){
+                   return item2.dateUtc.diff(item1.dateUtc);
+                });
+
+                var voteSuggestion = {
+                    userInfo: {
+                        id: user.id || ANONYMOUS_ID,
+                        displayName: user.displayName || 'Anonymous',
+                        pageUrl: userProfile.pageUrl || null,
+                        pictureUrl: userProfile.pictureUrl || null
+                    },
+                    date: +moment().utc(),
+                    suggestionItems: suggestionItems
+                };
+
+                return voteSuggestion;
+            }
 
             var UserVoteFactory = $FirebaseObject.$extendFactory({
                 isEmpty: function () {
@@ -625,7 +656,7 @@
                                     var json = {};
                                     angular.forEach(this, function (item, key) {
                                         var skey = S(key.toString());
-                                        if (skey.startsWith("$") || skey.startsWith("$$")) {
+                                        if (skey.startsWith('$') || skey.startsWith('$$')) {
                                             return;
                                         }
                                         json[key] = item;
@@ -635,7 +666,7 @@
                             }),
                             sync = fbutil.syncObject('voteResults/' + voteId, {objectFactory: SyncFactory});
                         sync.$watch(function () {
-                            $log.debug("voteSummaryService:syncWatch", {voteId: voteId, args: arguments});
+                            $log.debug('voteSummaryService:syncWatch', {voteId: voteId, args: arguments});
                             var result = createSummary(sync.toJSON());
 
                             summary.votes.splice(0, summary.votes.length);
@@ -677,15 +708,15 @@
                     });
                 },
 
-                saveUserVote: function (voteId, voteSet, user, userProfile) {
-                    if (!voteId || !voteSet || !angular.isArray(voteSet) || !user || !userProfile) {
+                saveUserVote: function (voteId, itemSet, user, userProfile) {
+                    if (!voteId || !itemSet || !angular.isArray(itemSet) || !user || !userProfile) {
                         throw new Error('Invalid arguments', arguments);
                     }
 
                     var refUserVote = fbutil.fb('userVotes/' + user.id),
                         refVoteResult = fbutil.fb('voteResults/' + voteId),
                         syncVoteCounters = counters.voteCounters(voteId),
-                        userVoteResult = createUserVoteResult(user, userProfile, voteSet);
+                        userVoteResult = createUserVoteResult(user, userProfile, itemSet);
 
                     return $q.all([
                         refUserVote.$set(voteId, userVoteResult),
@@ -736,11 +767,27 @@
                         return 0;
                     }
                     var momentStart = vote.dateStart ? moment(vote.dateStart) : moment(),
-                        momentEnd = vote.dateEnd ? moment(vote.dateEnd) : moment("2020-01-01"),
+                        momentEnd = vote.dateEnd ? moment(vote.dateEnd) : moment('2020-01-01'),
                         momentNow = moment(),
                         msInterval = momentEnd.diff(momentStart),
                         result = Math.round((momentEnd.diff(momentNow) * 100) / msInterval);
                     return result > 0 ? result : 0;
+                },
+
+                saveVoteSuggestion: function(voteId, itemSet, user, userProfile) {
+                    if (!voteId || !itemSet || !angular.isArray(itemSet) || !user || !userProfile) {
+                        throw new Error('Invalid arguments', arguments);
+                    }
+
+                    var refVoteSuggestions = fbutil.fb('voteSuggestions/' + voteId),
+                        refUserVoteSuggestions = fbutil.fb('userVoteSuggestions/' + user.id + '/' + voteId),
+                        voteSuggestion = createVoteSuggestion(user, userProfile, itemSet);
+                    return $q.all([
+                        refVoteSuggestions.$push(voteSuggestion),
+                        refUserVoteSuggestions.$push(voteSuggestion)
+                    ]).then(function() {
+                        activities.publish('votesuggestionsave', user, userProfile);
+                    });
                 }
             };
 
@@ -807,22 +854,6 @@
                     return this.socialNetworks && this.socialNetworks.twitter === true &&
                             this.domains && this.domains.com && this.domains.com === true;
                 },
-                getQuality: function() {
-                    var quality = 0;
-                    if(this.socialNetworks.twitter === true){
-                        quality += 30;
-                    }
-                    if(this.domains.com === true) {
-                        quality += 40;
-                    }
-                    if(this.domains.net === true) {
-                        quality += 15;
-                    }
-                    if(this.domains.org === true) {
-                        quality += 15;
-                    }
-                    return quality;
-                },
                 getRate: function() {
                     var rate = 0;
                     if(this.socialNetworks.twitter === true){
@@ -838,6 +869,16 @@
                         rate += 15;
                     }
                     return Math.round(rate / 20); // 0 to 5;
+                },
+                toJSON: function() {
+                    return {
+                        id: this.id,
+                        name: this.name,
+                        query: this.query,
+                        dateUtc: this.dateUtc.toISOString(),
+                        domains: this.domains,
+                        socialNetworks: this.socialNetworks
+                    };
                 }
             };
 
@@ -852,10 +893,10 @@
                         cache: false,
                         responseType: 'json'
                     })
-                        .success(function(data, status, headers, config){
+                        .success(function(data){
                             dfd.resolve(new NameCheck(data));
                         })
-                        .error(function(data, status, headers, config){
+                        .error(function(data, status){
                             dfd.reject({data: data, status:status});
                         });
                     return dfd.promise;

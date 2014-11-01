@@ -219,7 +219,7 @@
             };
         }])
 
-        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'nameCheckService', 'notifier', function ($log, $state, $stateParams, $scope, nameCheckService, notifier) {
+        .controller('VoteImproveController', ['$log', '$state', '$stateParams', '$scope', 'voteService', 'nameCheckService', 'notifier', function ($log, $state, $stateParams, $scope, voteService, nameCheckService, notifier) {
 
             $log.debug('VoteImproveController instantiated', {stateParams: $stateParams});
 
@@ -249,8 +249,12 @@
 
             $scope.submit = function () {
                 $log.debug('VoteImproveController:submit', $scope.nameChecks.valid);
-                notifier.success('Après revue positive nous les incluerons au vote.', 'Propositions envoyées');
-                $state.go('app.vote.default')
+
+
+                voteService.saveVoteSuggestion($scope.voteId, $scope.nameChecks.valid, $scope.user, $scope.userProfile).then(function() {
+                    notifier.success('Après revue positive nous les incluerons au vote.', 'Propositions envoyées');
+                    $state.go('app.vote.default');
+                });
             };
 
             $scope.reset = function () {
