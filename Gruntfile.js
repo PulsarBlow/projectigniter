@@ -143,7 +143,7 @@ module.exports = function (grunt) {
                         src: [
                             '.tmp',
                             '<%= yeoman.dist %>/{,*/}*',
-                            '!<%= yeoman.dist %>/.git*'
+                            '!<%= yeoman.dist %>/.git*',
                         ]
                     }
                 ]
@@ -323,6 +323,7 @@ module.exports = function (grunt) {
                         src: [
                             '*.{ico,png,txt}',
                             '.htaccess',
+                            'web.config',
                             '**/*.html',
                             'images/{,*/}*.{webp}',
                             'fonts/*'

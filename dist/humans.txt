@@ -1,0 +1,22 @@
+/* TEAM */
+	Developer: Alain Méreaux (PulsarBlow)
+	Contact: pulsarblow [a.t] gmail.com
+	Twitter: @alainmereaux
+	From: Paris, France
+
+/* SITE */
+	Language: French
+	Doctype: HTML5
+	DevTools:
+	    JetBrains WebStorm  (http://www.jetbrains.com/webstorm/)
+	    GruntJS
+	    Git
+	FrontEnd:
+	    AngularJS           (https://angularjs.org/)
+	    LESS                (http://lesscss.org/)
+	BackEnd:
+	    NodeJS              (http://nodejs.org/)
+        ExpressJS           (http://expressjs.com/)
+        Jade                (http://jade-lang.com/)
+	Data backend:
+	    Firebase            (https://www.firebase.com/)

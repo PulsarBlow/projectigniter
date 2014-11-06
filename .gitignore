@@ -73,7 +73,7 @@ atlassian-ide-plugin.xml
 com_crashlytics_export_strings.xml
 
 # Projet specifics
-dist
+#dist
 dist_iis
 .tmp
 bower_components
