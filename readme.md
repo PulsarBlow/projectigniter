@@ -1,3 +1,9 @@
+[![ProjectIgniter](http://img.shields.io/github/release/PulsarBlow/projectigniter.svg?style=flat-square)](https://github.com/PulsarBlow/projectigniter/releases/tag/v1.0.0-alpha)
+[![Powered by Angular](http://img.shields.io/badge/powered%20by-Angular-blue.svg?style=flat-square)](http://angularjs.org/)
+[![Powered by Firebase](http://img.shields.io/badge/powered%20by-Firebase-blue.svg?style=flat-square)](http://www.firebase.com/)
+[![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+
+
 # Project Igniter
 # WORK IN PROGRESS
 #### Live demo @ http://projectigniter-demo.azurewebsites.net/
