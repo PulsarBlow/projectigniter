@@ -1,6 +1,6 @@
 [![ProjectIgniter](http://img.shields.io/github/release/PulsarBlow/projectigniter.svg?style=flat-square)](https://github.com/PulsarBlow/projectigniter/releases/tag/v1.0.0-alpha)
-[![Powered by Angular](http://img.shields.io/badge/powered%20by-Angular%20v1.3.0-blue.svg?style=flat-square)](http://angularjs.org/)
-[![Powered by Firebase](http://img.shields.io/badge/powered%20by-Firebase%20v1.3.0-blue.svg?style=flat-square)](http://www.firebase.com/)
+[![Powered by Angular](http://img.shields.io/badge/powered%20by-Angular-blue.svg?style=flat-square)](http://angularjs.org/)
+[![Powered by Firebase](http://img.shields.io/badge/powered%20by-Firebase-blue.svg?style=flat-square)](http://www.firebase.com/)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
 
