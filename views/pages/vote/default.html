@@ -1,0 +1,87 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong>Résultats</strong>
+    </div>
+    <div class="panel-body">
+        <div data-ng-if="!voteSummary.voters.length">
+            <p>Personne n'a encore voté.</p>
+        </div>
+        <div data-ng-if="voteSummary.voters.length">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="list-group vote-results">
+                        <div class="list-group-item" data-ng-repeat="item in voteSummary.votes">
+                            <div class="list-group-item-heading">
+                                <div class="item-rank">#{{$index + 1}}</div>
+                                <div class="item-value">{{item.value}}</div>
+                            </div>
+
+                            <div class="list-group-item-footer">
+                                <div class="item-points">
+                                    {{item.points}} points
+                                </div>
+                                <div class="voters">
+                                    <a class="voter" data-ng-repeat="voter in item.voters"
+                                       data-ng-href="{{voter.pageUrl}}" target="_blank"
+                                       tooltip="{{voter.displayName}} - {{voter.points}} pts"
+                                       tooltip-placement="right">
+                                        <img data-ng-src="{{voter.pictureUrl}}" class="img-circle img20_20" alt="{{voter.displayName}}"/></a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-success">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteCounters.saved}}</p>
+
+                                    <p>Votes enregistrés</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-danger">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteCounters.deleted}}</p>
+
+                                    <p>Votes supprimés</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel mini-box text-center bg-info">
+                                <div class="box-info">
+                                    <p class="size-h2">{{voteSummary.totalPoints}}</p>
+
+                                    <p>Points assignés</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel" data-ng-show="voteSummary.voters.length">
+                        <div class="panel-heading">Participants</div>
+                        <div class="panel-body">
+                            <div class="voters">
+                                <div class="voter" data-ng-repeat="voter in voteSummary.voters">
+                                    <a class="voter" data-ng-if="voter.pageUrl" data-ng-href="{{voter.pageUrl}}" target="_blank"><img data-ng-src="{{voter.pictureUrl}}" class="img-circle img30_30" alt="{{voter.displayName}}" title="{{voter.displayName}}"/>{{voter.displayName}}</a>
+                                    <span data-ng-if="!voter.pageUrl"><img data-ng-src="{{voter.pictureUrl}}" class="img-circle img30_30" alt="{{voter.displayName}}" title="{{voter.displayName}}"/>{{voter.displayName}}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout callout-info">
+                        <h4>Des idées de nom ?</h4>
+                        <p>Vous avez une idée de nom bien cool qui ne figure pas dans cette liste ?</p>
+                        <p><button class="btn btn-info" data-ui-sref="app.vote.improve">Proposer un nom</button></p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

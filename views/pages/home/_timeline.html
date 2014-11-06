@@ -1,0 +1,24 @@
+<div class="ui-timeline-container">
+    <section class="ui-timeline" data-ng-repeat="entry in activities">
+        <article class="tl-item" data-ng-class="{'alt': $odd}">
+            <div class="tl-body">
+                <div class="tl-entry">
+                    <div class="tl-time">{{getMoment(entry.date)}}</div>
+                    <div class="tl-icon btn-{{entry.type}} btn-icon btn-icon-round btn-icon-thin"><i class="fa fa-{{entry.icon}}"></i>
+                    </div>
+                    <div class="tl-content">
+                        <img class="tl-avatar" data-ng-if="entry.userInfo.pictureUrl" data-ng-src="{{entry.userInfo.pictureUrl}}" data-tooltip="{{entry.userInfo.displayName}}" />
+                        <h4 class="tl-title text-{{entry.type}}">{{entry.title}}</h4>
+                        <p>{{entry.content}}</p>
+                        <div class="tl-like">
+                            <a href="" class="btn btn-danger btn-xs" data-ng-click="like(entry.$id)" data-ng-disabled="isMyActivity(entry.userInfo.id) || hasLiked(entry.likers)" tooltip="J'aime ça">+1</a> <span data-ng-repeat="liker in entry.likers"><img data-ng-src="{{liker.pictureUrl}}" tooltip-placement="bottom" tooltip="{{liker.displayName}} aime ça" /></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+</div>
+<div>
+    <p class="text-center">L'historique est limité aux {{limit}} dernières activités</p>
+</div>
