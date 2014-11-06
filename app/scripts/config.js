@@ -3,7 +3,7 @@
     angular.module('app.config', ['ui.bootstrap'])
 
     // Firebase data URL
-    .value('FBURL', 'https://projectigniter.firebaseio.com')
+    .value('FBURL', 'https://projectigniter-demo.firebaseio.com')
     // Overrides during development
     // @if DEBUG
     .value('FBURL', 'https://burning-inferno-9731.firebaseio.com')

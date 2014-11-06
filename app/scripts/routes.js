@@ -154,7 +154,7 @@
 
         .run(['$log', '$location', '$rootScope', '$state', 'simpleLogin', 'activityService', 'loginRedirectPath', function($log, $location, $rootScope, $state, simpleLogin, activityService, loginRedirectPath) {
 
-            var isAuthenticated = false, homeUrl = '/vote/001-project-name/improve', returnUrl = null, lastUserLoginInfo;
+            var isAuthenticated = false, homeUrl = '/', returnUrl = null, lastUserLoginInfo;
 
             $log.debug('app.routes:run', {
                 rootScope: $rootScope,

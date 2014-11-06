@@ -842,7 +842,7 @@
         .factory('nameCheckService', ['$log', '$q', '$http', function($log, $q, $http){
 
             function NameCheck(data) {
-                this.id = data.id;
+                this.id = data.key;
                 this.name = data.name;
                 this.query = data.query;
                 this.dateUtc = data.dateUtc ? moment(data.dateUtc) : moment();
