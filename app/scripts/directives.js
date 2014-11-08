@@ -88,5 +88,15 @@
             };
         }])
 
+        .directive('toggleOffCanvas', function() {
+            return {
+                restrict: 'A',
+                link: function(scope, element) {
+                    element.on('click', function(){
+                       $('#app').toggleClass('on-canvas');
+                    });
+                }
+            };
+        })
         ;
 })(window.angular || {});
